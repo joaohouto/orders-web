@@ -24,7 +24,7 @@ export function AuthPage() {
           </a>
 
           <Card>
-            <CardHeader className="text-center">
+            <CardHeader>
               <CardTitle className="text-xl">Seja bem-vindo</CardTitle>
               <CardDescription>Mas, faça o login antes...</CardDescription>
             </CardHeader>

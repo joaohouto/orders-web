@@ -1,6 +1,7 @@
+import { Link } from "react-router";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { StoreIcon } from "lucide-react";
 
 export function AppPage() {
   return (
@@ -9,12 +10,13 @@ export function AppPage() {
         <h1 className="font-semibold tracking-tight text-2xl">Suas lojas</h1>
 
         <div className="flex flex-col gap-2">
-          <Card>
-            <CardHeader>
-              <StoreIcon />
-              <CardTitle>Direito Aquidauana</CardTitle>
-            </CardHeader>
-          </Card>
+          <Link to="/app/direitoaquidauana">
+            <Card>
+              <CardHeader>
+                <CardTitle>Direito Aquidauana</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Button>Criar nova loja</Button>

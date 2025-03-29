@@ -32,51 +32,53 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Link } from "react-router";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Painel",
-      url: "/app",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Produtos",
-      url: "/app/products",
-      icon: Package,
-    },
-    {
-      title: "Vendas",
-      url: "/app/orders",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Colaboradores",
-      url: "/app/team",
-      icon: UsersIcon,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Configurações",
-      url: "/settings",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Preciso de ajuda",
-      url: "mailto:suporte@joaocouto.com",
-      icon: HelpCircleIcon,
-    },
-  ],
-};
+import { Link, useParams } from "react-router";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { storeSlug } = useParams();
+
+  const data = {
+    user: {
+      name: "shadcn",
+      email: "m@example.com",
+      avatar: "/avatars/shadcn.jpg",
+    },
+    navMain: [
+      {
+        title: "Página",
+        url: `/app/${storeSlug}`,
+        icon: LayoutDashboardIcon,
+      },
+      {
+        title: "Colaboradores",
+        url: `/app/${storeSlug}/team`,
+        icon: UsersIcon,
+      },
+      {
+        title: "Produtos",
+        url: `/app/${storeSlug}/products`,
+        icon: Package,
+      },
+      {
+        title: "Vendas",
+        url: `/app/${storeSlug}/orders`,
+        icon: BarChartIcon,
+      },
+    ],
+    navSecondary: [
+      {
+        title: "Configurações",
+        url: "/settings",
+        icon: SettingsIcon,
+      },
+      {
+        title: "Preciso de ajuda",
+        url: "mailto:suporte@joaocouto.com",
+        icon: HelpCircleIcon,
+      },
+    ],
+  };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>

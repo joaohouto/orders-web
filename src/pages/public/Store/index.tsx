@@ -11,7 +11,7 @@ export function StorePage() {
         <div className="flex items-center gap-4">
           <img src="" className="size-[100px] bg-muted rounded-xl" />
           <h1 className="text-2xl font-semibold tracking-tight">
-            Direito Aquidauana
+            {params.storeSlug}
           </h1>
         </div>
       </div>
