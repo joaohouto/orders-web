@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, SendHorizonalIcon, SendIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
 import { useParams } from "react-router";
 
 export function TeamPage() {

@@ -21,7 +21,7 @@ export function ViewOrderPage() {
       <AppHeader
         routes={[
           { path: "orders", title: "Pedidos" },
-          { path: `orders/v/${orderId}`, title: orderId },
+          { path: `orders/v/${orderId}`, title: orderId || "" },
         ]}
       />
 
@@ -86,8 +86,6 @@ export function ViewOrderPage() {
               <span className="text-right">R$ 100,00</span>
             </div>
 
-            <Separator />
-
             <div className="grid grid-cols-2 gap-4 text-muted-foreground">
               <h3>Subtotal</h3>
               <span className="text-right">R$ 100,00</span>
@@ -106,8 +104,6 @@ export function ViewOrderPage() {
                 Avenida Manoel Murtinho, 1831 - Anastácio/MS - 79210-000
               </span>
             </div>
-
-            <Separator />
 
             <h3 className="font-semibold">Informações de contato</h3>
 

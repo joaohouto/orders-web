@@ -28,10 +28,12 @@ export function DataTableToolbar<TData>({
         <div className="relative">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Pesquisar por"
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            placeholder="Pesquisar por comprador"
+            value={
+              (table.getColumn("buyerName")?.getFilterValue() as string) ?? ""
+            }
             onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
+              table.getColumn("buyerName")?.setFilterValue(event.target.value)
             }
             className="w-[150px] lg:w-[250px] pl-8"
           />

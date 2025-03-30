@@ -42,7 +42,7 @@ const formSchema = z.object({
     ),
 });
 
-export function DashboardPage() {
+export function StorePage() {
   const { storeSlug } = useParams();
 
   const form = useForm<z.infer<typeof formSchema>>({

@@ -4,14 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
-import {
-  Crown,
-  MailCheck,
-  MailX,
-  MinusCircle,
-  User,
-  Verified,
-} from "lucide-react";
+
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
 
@@ -69,7 +62,7 @@ export const columns: ColumnDef<any>[] = [
   {
     accessorKey: "buyerName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
+      <DataTableColumnHeader column={column} title="Comprador" />
     ),
     cell: ({ row }) => {
       return <span>{row.getValue("buyerName")}</span>;

@@ -36,8 +36,8 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem asChild>
           <Link to={`/app/${storeSlug}/orders/v/${rowItem.id}`}>
-            Visualizar pedido
             <ArrowUpRight />
+            Visualizar pedido
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
