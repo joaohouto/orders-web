@@ -1,3 +1,4 @@
+import { info } from "@/config/app";
 import { GalleryVerticalEnd } from "lucide-react";
 
 export function LandingPage() {
@@ -12,7 +13,7 @@ export function LandingPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Orders
+            {info.appName}
           </a>
         </div>
       </div>

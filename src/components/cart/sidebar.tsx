@@ -7,15 +7,13 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBasketIcon, ShoppingCartIcon } from "lucide-react";
+import { Bird, ShoppingCartIcon } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import { CartItem } from "./item";
-import { useState } from "react";
 import { moneyFormatter } from "@/lib/utils";
+import { Link } from "react-router";
 
 export const CartSidebar = () => {
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-
   const { cart } = useCartStore((state) => state);
 
   let subtotal = 0;
@@ -39,29 +37,40 @@ export const CartSidebar = () => {
           <SheetTitle>Carrinho</SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col gap-5 my-3">
-          {cart.map((item) => (
-            <CartItem key={item.product.id} item={item} />
-          ))}
-        </div>
+        <div className="p-4">
+          <div className="flex flex-col gap-5 my-3">
+            {cart.map((item) => (
+              <CartItem key={item.product.id} item={item} />
+            ))}
+          </div>
 
-        <Separator className="my-4" />
+          {cart.length === 0 && (
+            <div className="flex flex-col items-center justify-center p-4">
+              <div className="size-12 bg-muted text-muted-foreground rounded-xl flex justify-center items-center mb-4">
+                <Bird />
+              </div>
 
-        <div className="flex justify-between items-center text-xs">
-          <div>Subtotal:</div>
-          <div>{moneyFormatter.format(subtotal)}</div>
-        </div>
+              <strong>Nada por aqui</strong>
+              <span className="text-sm text-muted-foreground">
+                Escolha algum produto na loja
+              </span>
+            </div>
+          )}
 
-        <Separator className="my-4" />
+          <Separator className="my-4" />
 
-        <div className="text-center">
-          <Button
-            className="w-full"
-            disabled={cart.length === 0}
-            onClick={() => setCheckoutOpen(true)}
-          >
-            Finalizar compra
-          </Button>
+          <div className="flex justify-between items-center text-xs">
+            <div>Subtotal:</div>
+            <div>{moneyFormatter.format(subtotal)}</div>
+          </div>
+
+          <Separator className="my-4" />
+
+          <div className="text-center">
+            <Button className="w-full" disabled={cart.length === 0} asChild>
+              <Link to="/checkout">Finalizar compra</Link>
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -5,6 +5,7 @@ import { LandingPage } from "@/pages/public/Landing";
 import { AuthPage } from "@/pages/auth";
 import { StorePage } from "@/pages/public/Store";
 import { ProfilePage } from "@/pages/public/Profile";
+import { ProductPage } from "@/pages/public/Store/Product";
 
 import { AppLayout } from "./pages/app/layout";
 import { AppPage } from "@/pages/app";
@@ -16,6 +17,8 @@ import { CreateProductPage } from "@/pages/app/Products/Create";
 import { OrdersPage } from "@/pages/app/Orders";
 import { ViewOrderPage } from "@/pages/app/Orders/View";
 import { TeamPage } from "@/pages/app/Team";
+import { CheckoutPage } from "./pages/public/Checkout";
+import { PaymentPage } from "./pages/public/Payment";
 
 export function Routes() {
   return (
@@ -23,8 +26,9 @@ export function Routes() {
       <RouterRoutes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
-
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
 
         <Route path="/app" element={<AppPage />} />
 
@@ -41,6 +45,7 @@ export function Routes() {
         </Route>
 
         <Route path="/:storeSlug" element={<StorePage />} />
+        <Route path="/:storeSlug/p/:productSlug" element={<ProductPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </RouterRoutes>

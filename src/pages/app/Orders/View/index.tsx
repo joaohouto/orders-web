@@ -29,7 +29,7 @@ export function ViewOrderPage() {
         <Card className="py-0">
           <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
             <div className="flex flex-col">
-              <CardTitle className="text-xl">Pedido #{orderId}</CardTitle>
+              <CardTitle>Pedido {orderId}</CardTitle>
               <CardDescription>
                 Criado em{" "}
                 {dayjs()
@@ -48,35 +48,7 @@ export function ViewOrderPage() {
               <img
                 src=""
                 alt="."
-                className="size-[56px) aspect-square rounded bg-muted object-contain"
-              />
-
-              <span className="text-center">1x</span>
-              <span>
-                Camiseta Futebol Americano - Tamaho M - Número 10, Nome JOÃO
-              </span>
-              <span className="text-right">R$ 100,00</span>
-            </div>
-
-            <div className="grid grid-cols-[56px_24px_1fr_100px] gap-2 text-muted-foreground">
-              <img
-                src=""
-                alt="."
-                className="size-[56px) aspect-square rounded bg-muted object-contain"
-              />
-
-              <span className="text-center">1x</span>
-              <span>
-                Camiseta Futebol Americano - Tamaho M - Número 10, Nome JOÃO
-              </span>
-              <span className="text-right">R$ 100,00</span>
-            </div>
-
-            <div className="grid grid-cols-[56px_24px_1fr_100px] gap-2 text-muted-foreground">
-              <img
-                src=""
-                alt="."
-                className="size-[56px) aspect-square rounded bg-muted object-contain"
+                className="size-[56px) aspect-square rounded-md bg-muted object-contain"
               />
 
               <span className="text-center">1x</span>

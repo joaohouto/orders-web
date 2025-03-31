@@ -17,13 +17,17 @@ import { AppHeader } from "@/components/app-header";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CirclePlus, Package, SaveIcon, Trash2, XIcon } from "lucide-react";
+import { CirclePlus, SaveIcon, Trash2 } from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import MoneyInput from "@/components/money-input";
 import { Separator } from "@/components/ui/separator";
+import { useEffect } from "react";
 
 const formSchema = z.object({
+  slug: z.string({
+    message: "Forneça um valor",
+  }),
   name: z.string({
     message: "Forneça um valor",
   }),
@@ -61,6 +65,15 @@ export function CreateProductPage() {
     console.log(values);
   }
 
+  useEffect(() => {
+    if (form.watch("name")) {
+      form.setValue(
+        "slug",
+        form.watch("name").toLocaleLowerCase().replaceAll(" ", "-")
+      );
+    }
+  }, [form.watch("name")]);
+
   return (
     <>
       <AppHeader
@@ -82,7 +95,21 @@ export function CreateProductPage() {
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription>O título do seu produto.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Identificador</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription>Ficará no URL da página.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -2,6 +2,7 @@ import { Header } from "@/components/header";
 import { ProductItem } from "@/components/products/item";
 import { Button } from "@/components/ui/button";
 import { info } from "@/config/app";
+import dayjs from "dayjs";
 import { InstagramIcon } from "lucide-react";
 import { useParams } from "react-router";
 
@@ -18,11 +19,36 @@ export function StorePage() {
 
   const products = [
     {
+      id: "sadasdadasdas",
+      image:
+        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/07/Moletom-Personalizado-Preto-bordado.png",
+      name: "Moletom",
+      slug: "moletom",
+      price: 120,
+    },
+    {
       id: "saidjsaoidjsa",
       image:
         "https://www.cataventouniformes.com.br/wp-content/uploads/2024/07/Jaqueta-College-Personalizada-preto-com-branco-Bordado.png",
       name: "Jaqueta College",
-      price: 120,
+      slug: "jaqueta-college",
+      price: 130,
+    },
+    {
+      id: "adadaasdasd",
+      image:
+        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/09/camisa-de-futebol-americano-premium-personalizada.png",
+      name: "Camisa Futebol Americano",
+      slug: "camisa-futebol-americano",
+      price: 90,
+    },
+    {
+      id: "asdsadasdsadsa",
+      image:
+        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/07/Camisa-baseball-Personalizada-bordado.png",
+      name: "Camisa Baseball",
+      slug: "camisa-baseball",
+      price: 90,
     },
   ];
 
@@ -65,6 +91,9 @@ export function StorePage() {
         </section>
 
         <div>
+          <h2 className="text-sm uppercase font-medium mb-4 text-muted-foreground">
+            Produtos
+          </h2>
           {products.length > 0 && (
             <div className="grid gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
               {products.map((product) => (
@@ -76,7 +105,7 @@ export function StorePage() {
       </div>
 
       <footer className="p-8 text-sm text-muted-foreground">
-        {info.appName} não efetua as entregas
+        &copy; {dayjs().format("YYYY")} {info.appName} - Made in MS
       </footer>
     </div>
   );

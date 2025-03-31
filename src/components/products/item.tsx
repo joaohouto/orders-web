@@ -1,28 +1,16 @@
-"use client";
-
 import { Product } from "@/types/product";
-import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/stores/cart-store";
-import { toast } from "sonner";
 import { moneyFormatter } from "@/lib/utils";
+import { Link, useParams } from "react-router";
 
 type Props = {
   item: Product;
 };
 
 export const ProductItem = ({ item }: Props) => {
-  const { upsertCartItem } = useCartStore((state) => state);
-
-  const handleAddButton = () => {
-    upsertCartItem(item, 1);
-    toast.success("Feito", {
-      description: `${item.name} foi adicionado ao carrinho!`,
-      duration: 2000,
-    });
-  };
+  const { storeSlug } = useParams();
 
   return (
-    <div>
+    <Link to={`/${storeSlug}/p/${item.slug}`}>
       <div className="rounded-md overflow-hidden">
         <img
           src={item.image}
@@ -31,14 +19,11 @@ export const ProductItem = ({ item }: Props) => {
         />
       </div>
       <div className="mt-3 flex flex-col gap-2">
-        <p className="text-lg">{item.name}</p>
+        <p className="text-lg leading-[120%]">{item.name}</p>
         <p className="text-sm opacity-50">
           {moneyFormatter.format(item.price)}
         </p>
-        <Button variant="outline" onClick={handleAddButton}>
-          Adicionar
-        </Button>
       </div>
-    </div>
+    </Link>
   );
 };
