@@ -2,6 +2,7 @@ import { Header } from "@/components/header";
 import { ProductItem } from "@/components/products/item";
 import { Button } from "@/components/ui/button";
 import { info } from "@/config/app";
+import api from "@/services/api";
 import dayjs from "dayjs";
 import { InstagramIcon } from "lucide-react";
 import { useParams } from "react-router";
@@ -9,13 +10,19 @@ import { useParams } from "react-router";
 export function StorePage() {
   const { storeSlug } = useParams();
 
-  const store = {
-    slug: storeSlug,
-    name: "Direito Aquidauana",
-    instagram: "direitoaquidauana",
-    bannerURL: "/banner.png",
-    iconURL: "/icon.png",
-  };
+  const {
+    data: store,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [`store-${storeSlug}`],
+    queryFn: getStore,
+  });
+
+  async function getStore() {
+    const res = await api.get(`/stores/${storeSlug}`);
+    return res.data;
+  }
 
   const products = [
     {
@@ -59,13 +66,13 @@ export function StorePage() {
       <div className="w-full md:w-[720px] flex flex-col p-8 gap-4">
         <section className="mb-8 space-y-4">
           <img
-            src={store.bannerURL}
+            src={store.banner}
             className="w-full h-[200px] bg-muted rounded-xl border object-cover"
           />
 
           <div className="flex items-center gap-8">
             <img
-              src={store.iconURL}
+              src={store.icon}
               className="size-[100px] bg-muted rounded-xl border object-cover"
             />
             <div className="space-y-2">

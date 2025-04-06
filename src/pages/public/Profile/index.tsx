@@ -1,20 +1,19 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useMask } from "@react-input/mask";
 
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, SaveIcon } from "lucide-react";
-import { PhoneInput } from "@/components/phone-input";
+import { ArrowLeft, Loader, SaveIcon } from "lucide-react";
 import { Header } from "@/components/header";
 import {
   Card,
@@ -25,6 +24,10 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/auth";
+import api from "@/services/api";
+import { toast } from "sonner";
+import { useState } from "react";
+import { PhoneInput } from "@/components/phone-input";
 
 const formSchema = z.object({
   name: z.string({
@@ -38,22 +41,15 @@ const formSchema = z.object({
 
   phone: z
     .string()
-    .min(1, "O telefone é obrigatório")
-    .refine(
-      (value) => {
-        const digits = value.replace(/\D/g, "");
-        return digits.length === 10 || digits.length === 11;
-      },
-      {
-        message: "O telefone deve ter 10 dígitos ou 11 dígitos",
-      }
-    ),
+    .min(14, "Número incompleto") // ex: (99) 99999-9999 → 14 chars
+    .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido"),
 });
 
 export function ProfilePage() {
   const navigate = useNavigate();
 
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,8 +60,24 @@ export function ProfilePage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingSubmit(true);
+
+    try {
+      const response = await api.patch("/users/profile", {
+        name: values.name,
+        phone: values.phone.replace(/\D/g, ""),
+      });
+
+      updateUser(response.data);
+
+      toast.success("Dados atualizados!");
+    } catch (err) {
+      toast.error("Erro ao salvar! Tente novamente");
+      console.log(err);
+    } finally {
+      setLoadingSubmit(false);
+    }
   }
 
   return (
@@ -127,10 +139,25 @@ export function ProfilePage() {
                   )}
                 />
 
-                <PhoneInput name="phone" control={form.control} />
-
-                <Button type="submit">
-                  <SaveIcon />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <PhoneInput {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={loadingSubmit}>
+                  {loadingSubmit ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    <SaveIcon />
+                  )}
                   Salvar dados
                 </Button>
               </form>
