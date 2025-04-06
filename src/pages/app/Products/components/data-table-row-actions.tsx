@@ -35,7 +35,7 @@ export function DataTableRowActions<TData>({
 
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem asChild>
-          <Link to={`/${storeSlug}/${rowItem.id}`}>
+          <Link to={`/${storeSlug}/p/${rowItem.slug}`}>
             <ArrowUpRight />
             Ver produto
           </Link>

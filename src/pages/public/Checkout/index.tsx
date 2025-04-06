@@ -84,7 +84,7 @@ export function CheckoutPage() {
 
         <Card>
           <CardHeader className="border-b">
-            <CardTitle>Seu pedido</CardTitle>
+            <CardTitle>Revise o seu pedido</CardTitle>
             <CardDescription></CardDescription>
           </CardHeader>
 

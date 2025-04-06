@@ -105,7 +105,7 @@ export function StorePage() {
       </div>
 
       <footer className="p-8 text-sm text-muted-foreground">
-        &copy; {dayjs().format("YYYY")} {info.appName} - Made in MS
+        &copy; {dayjs().format("YYYY")} {info.appName}
       </footer>
     </div>
   );

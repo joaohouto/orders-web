@@ -24,6 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useNavigate } from "react-router";
+import { useAuth } from "@/hooks/auth";
 
 const formSchema = z.object({
   name: z.string({
@@ -52,10 +53,14 @@ const formSchema = z.object({
 export function ProfilePage() {
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "João Henrique",
+      name: user?.name,
+      email: user?.email,
+      phone: user?.phone,
     },
   });
 
@@ -70,6 +75,14 @@ export function ProfilePage() {
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />
         </Button>
+
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Seus pedidos</CardTitle>
+          </CardHeader>
+
+          <CardContent></CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="border-b">
@@ -107,7 +120,7 @@ export function ProfilePage() {
                     <FormItem>
                       <FormLabel>Seu email</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input disabled {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -7,45 +7,50 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, QrCode } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "recharts";
-
-import { QrCodePix } from "qrcode-pix";
+import { Link } from "react-router";
 
 export function PaymentPage() {
+  const [pixQRCode, setPixQRCode] = useState(
+    "https://gerador-qrcode-r2pk3ukt5q-rj.a.run.app/pix/Joao/Aquidauana/pix@joaocouto.com/1.00"
+  );
+  const [pix, setPix] = useState("");
+
   const [copied, setCopied] = useState(false);
-
-  const [qrCodeIMG, setQrCodeIMG] = useState("");
-
-  const qrCodePix = QrCodePix({
-    version: "01",
-    key: "pix@joaocouto.com",
-    name: "Fulano de Tal",
-    city: "AQUIDAUANA",
-    transactionId: "YOUR_TRANSACTION_ID", //max 25 characters
-    message: "Pay me :)",
-    cep: "79210000",
-    value: 150.99,
-  });
-
-  useEffect(() => {
-    (async () => {
-      const image = await qrCodePix.base64();
-      setQrCodeIMG(image);
-    })();
-  }, []);
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(qrCodePix.payload());
+      await navigator.clipboard.writeText(pix);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy text: ", err);
     }
   };
+
+  useEffect(() => {
+    (async () => {
+      const response = await fetch(
+        "https://gerador-qrcode-r2pk3ukt5q-rj.a.run.app/copicola/Joao/Aquidauana/pix@joaocouto.com/1.00",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          referrerPolicy: "no-referrer",
+        }
+      );
+
+      const json = await response.json();
+
+      console.log(json);
+
+      setPix(json);
+    })();
+  }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -58,15 +63,15 @@ export function PaymentPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex justify-center p-4 bg-muted rounded-lg">
-            <img src={qrCodeIMG} />
+            <img src={pixQRCode} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="payment-code">Payment Code</Label>
+            <Label>Código de pagamento</Label>
             <div className="flex space-x-2">
               <Input
                 id="payment-code"
-                value={qrCodePix.payload()}
+                value={pix}
                 readOnly
                 className="font-mono"
               />
@@ -99,7 +104,9 @@ export function PaymentPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full">Ir para meus pedidos</Button>
+          <Button className="w-full">
+            <Link to="/orders">Ir para meus pedidos</Link>
+          </Button>
         </CardFooter>
       </Card>
     </div>

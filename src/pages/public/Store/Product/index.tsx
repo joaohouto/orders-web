@@ -18,12 +18,12 @@ import { toast } from "sonner";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState("#7f1d1d");
   const [selectedSize, setSelectedSize] = useState("m");
   const [currentImage, setCurrentImage] = useState(0);
 
   const product = {
     id: "asdsoidasdsa",
+    slug: "asdsoidasdsa",
     name: "Moletom",
     price: 120,
     description:
@@ -34,7 +34,6 @@ export function ProductPage() {
       "https://www.cataventouniformes.com.br/wp-content/uploads/2022/02/Moletom-Verde-Bandeira-Atletica-Unificada-Puc-Pocos-de-Caldas.jpg",
       "https://www.cataventouniformes.com.br/wp-content/uploads/2022/02/Moletom-Terceirao-Absolutos-2020.jpg",
     ],
-    colors: [{ name: "Vinho", value: "#7f1d1d" }],
     sizes: [
       { name: "S", value: "s" },
       { name: "M", value: "m" },
@@ -140,28 +139,6 @@ export function ProductPage() {
             </div>
 
             <p className="text-muted-foreground">{product.description}</p>
-
-            {/* Color Selection */}
-            <div>
-              <h3 className="text-sm font-medium">Cor</h3>
-              <div className="mt-2 flex space-x-2">
-                {product.colors.map((color) => (
-                  <button
-                    key={color.value}
-                    className={`relative h-8 w-8 rounded-full border ${
-                      selectedColor === color.value
-                        ? "ring-2 ring-primary ring-offset-2"
-                        : ""
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => setSelectedColor(color.value)}
-                    title={color.name}
-                  >
-                    <span className="sr-only">{color.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Size Selection */}
             <div>
