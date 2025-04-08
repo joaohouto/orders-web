@@ -185,7 +185,7 @@ export function ProductPage() {
                 {product.variations?.map((variation: any) => (
                   <button
                     key={variation.id}
-                    className={`flex h-10 min-w-10 px-3 items-center justify-center rounded-md border text-sm font-medium ${
+                    className={`flex h-10 min-w-10 px-3 items-center justify-center rounded-md border text-sm font-medium transition-colors ${
                       selectedVariation?.id === variation.id
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-input hover:bg-accent hover:text-accent-foreground"

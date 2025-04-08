@@ -34,7 +34,7 @@ export function Routes() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/orders" element={<UserOrdersPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/orders/:orderId/payment" element={<PaymentPage />} />
 
           <Route path="/app" element={<AppPage />} />
 

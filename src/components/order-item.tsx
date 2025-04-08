@@ -16,6 +16,7 @@ import { CancelOrderDialog } from "./cancel-order-dialog";
 import { toast } from "sonner";
 import { useState } from "react";
 import { stat } from "fs";
+import { Link } from "react-router";
 
 type ProductItem = {
   imageUrl: string;
@@ -48,7 +49,6 @@ type OrderItemProps = {
 export function OrderItem({
   orderId,
   createdAt,
-  updatedAt,
   status,
   products,
   total,
@@ -109,9 +109,11 @@ export function OrderItem({
 
         <CardFooter className="border-t rounded-b-xl pb-6 pt-6 gap-4 flex flex-col md:flex-row">
           {status === "PENDING" && (
-            <Button type="button" variant="secondary">
-              <CreditCardIcon />
-              Efetuar pagamento
+            <Button type="button" variant="secondary" asChild>
+              <Link to={`/orders/${orderId}/payment`}>
+                <CreditCardIcon />
+                Efetuar pagamento
+              </Link>
             </Button>
           )}
 
@@ -135,7 +137,7 @@ export function OrderItem({
         onSuccess={() => {
           // refetch orders, toast, etc
           toast.success("Pedido cancelado com sucesso!");
-          window.location.href = "/profile";
+          window.location.href = "/orders";
         }}
       />
     </>
