@@ -21,6 +21,7 @@ import { ViewOrderPage } from "@/pages/app/Orders/View";
 import { TeamPage } from "@/pages/app/Team";
 import { CheckoutPage } from "../pages/public/Checkout";
 import { PaymentPage } from "../pages/public/Payment";
+import { UserOrdersPage } from "@/pages/public/UserOrders";
 
 export function Routes() {
   return (
@@ -28,8 +29,10 @@ export function Routes() {
       <RouterRoutes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
+
         <Route element={<PrivateRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/orders" element={<UserOrdersPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment" element={<PaymentPage />} />
 
@@ -46,10 +49,10 @@ export function Routes() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/v/:orderId" element={<ViewOrderPage />} />
           </Route>
-
-          <Route path="/:storeSlug" element={<StorePage />} />
-          <Route path="/:storeSlug/p/:productSlug" element={<ProductPage />} />
         </Route>
+
+        <Route path="/:storeSlug" element={<StorePage />} />
+        <Route path="/:storeSlug/p/:productSlug" element={<ProductPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </RouterRoutes>

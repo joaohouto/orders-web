@@ -1,8 +1,9 @@
 import {
-  BellIcon,
   CreditCardIcon,
+  HelpCircle,
   LogOutIcon,
   MoreVerticalIcon,
+  User2Icon,
   UserCircleIcon,
 } from "lucide-react";
 
@@ -22,17 +23,17 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/auth";
+import { Link } from "react-router";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar();
+
+  const { user, signOut } = useAuth();
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <SidebarMenu>
@@ -45,7 +46,9 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  <User2Icon className="size-4" />
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -66,7 +69,9 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    <User2Icon className="size-4" />
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
@@ -78,21 +83,29 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCircleIcon />
-                Conta
+              <DropdownMenuItem asChild>
+                <Link to="/profile">
+                  <UserCircleIcon />
+                  Seus dados
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Cobrança
+
+              <DropdownMenuItem asChild>
+                <Link to="/orders">
+                  <CreditCardIcon />
+                  Seus pedidos
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notificações
+
+              <DropdownMenuItem asChild>
+                <a href="mailto:suporte@joaocouto.com" target="_blank">
+                  <HelpCircle />
+                  Preciso de ajuda
+                </a>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => signOut()}>
               <LogOutIcon />
               Encerrar sessão
             </DropdownMenuItem>

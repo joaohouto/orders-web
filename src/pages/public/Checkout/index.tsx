@@ -6,16 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Bird, SaveIcon } from "lucide-react";
+import { ArrowLeft, Bird, Loader2 } from "lucide-react";
 import { PhoneInput } from "@/components/phone-input";
-import { Header } from "@/components/header";
 import {
   Card,
   CardContent,
@@ -26,9 +24,13 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router";
 import { CartItem } from "@/components/cart/item";
-import { Separator } from "@/components/ui/separator";
 import { moneyFormatter } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
+import { useState } from "react";
+import { useAuth } from "@/hooks/auth";
+import { toast } from "sonner";
+import api from "@/services/api";
+import { Cart } from "@/types/cart";
 
 const formSchema = z.object({
   name: z.string({
@@ -42,98 +44,138 @@ const formSchema = z.object({
 
   phone: z
     .string()
-    .min(1, "O telefone é obrigatório")
-    .refine(
-      (value) => {
-        const digits = value.replace(/\D/g, "");
-        return digits.length === 10 || digits.length === 11;
-      },
-      {
-        message: "O telefone deve ter 10 dígitos ou 11 dígitos",
-      }
-    ),
+    .min(14, "Número incompleto") // ex: (99) 99999-9999 → 14 chars
+    .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido"),
 });
 
 export function CheckoutPage() {
   const navigate = useNavigate();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "João Henrique",
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-  }
-
-  const { cart } = useCartStore((state) => state);
+  const { cart, clearCart } = useCartStore((state) => state);
 
   let subtotal = 0;
   for (const item of cart) {
-    subtotal += item.quantity * item.product.price;
+    subtotal += item.quantity * +item.product.price;
+  }
+
+  const { user, updateUser } = useAuth();
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: user?.name,
+      email: user?.email,
+      phone: user?.phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingSubmit(true);
+
+    try {
+      const response = await api.patch("/users/profile", {
+        name: values.name,
+        phone: values.phone.replace(/\D/g, ""),
+      });
+
+      updateUser(response.data);
+
+      createOrder();
+    } catch (err) {
+      toast.error("Erro ao salvar! Tente novamente");
+      console.log(err);
+    } finally {
+      setLoadingSubmit(false);
+    }
+  }
+
+  async function createOrder() {
+    const items = cart.map((cartItem: Cart) => {
+      return {
+        productId: cartItem.product.productId,
+        variationId: cartItem.product.id,
+        quantity: cartItem.quantity,
+        note: cartItem.product.note,
+      };
+    });
+
+    const response = await api.post(
+      `/stores/${cart[0].product.storeId}/orders`,
+      {
+        items,
+      }
+    );
+
+    console.log(response.data);
+
+    toast.success(`Pedido criado! ID ${response.data.id}`);
+
+    navigate("/orders");
+    clearCart();
   }
 
   return (
-    <>
-      <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-8">
-        <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft />
-        </Button>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-8">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft />
+          </Button>
 
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle>Revise o seu pedido</CardTitle>
-            <CardDescription></CardDescription>
-          </CardHeader>
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle>Revise o seu pedido</CardTitle>
+              <CardDescription></CardDescription>
+            </CardHeader>
 
-          <CardContent>
-            <div className="flex flex-col gap-5 my-3">
-              {cart.map((item) => (
-                <CartItem key={item.product.id} item={item} />
-              ))}
-            </div>
+            <CardContent>
+              <div className="flex flex-col gap-5 my-3">
+                {cart.map((item) => (
+                  <CartItem key={item.product.id} item={item} />
+                ))}
+              </div>
 
-            {cart.length === 0 && (
-              <div className="flex flex-col items-center justify-center p-4">
-                <div className="size-12 bg-muted text-muted-foreground rounded-xl flex justify-center items-center mb-4">
-                  <Bird />
+              {cart.length === 0 && (
+                <div className="flex flex-col items-center justify-center p-4">
+                  <div className="size-12 bg-muted text-muted-foreground rounded-xl flex justify-center items-center mb-4">
+                    <Bird />
+                  </div>
+
+                  <strong>Nada por aqui</strong>
+                  <span className="text-sm text-muted-foreground">
+                    Escolha algum produto na loja
+                  </span>
                 </div>
+              )}
+            </CardContent>
 
-                <strong>Nada por aqui</strong>
-                <span className="text-sm text-muted-foreground">
-                  Escolha algum produto na loja
+            <CardFooter className="border-t">
+              <div className="w-full flex justify-between items-center">
+                <div>Subtotal:</div>
+                <span className="font-semibold">
+                  {moneyFormatter.format(subtotal)}
                 </span>
               </div>
-            )}
-          </CardContent>
+            </CardFooter>
+          </Card>
 
-          <CardFooter className="border-t">
-            <div className="w-full flex justify-between items-center">
-              <div>Subtotal:</div>
-              <span className="font-semibold">
-                {moneyFormatter.format(subtotal)}
-              </span>
-            </div>
-          </CardFooter>
-        </Card>
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle>Seu perfil</CardTitle>
+              <CardDescription>
+                Mantenha suas informações atualizadas para que possamos ter
+                facilidade para contatar você.
+              </CardDescription>
+            </CardHeader>
 
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle>Seus dados</CardTitle>
-            <CardDescription>
-              Mantenha suas informações atualizadas para que possamos ter
-              facilidade para contatar você.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
+            <CardContent>
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="name"
@@ -155,21 +197,39 @@ export function CheckoutPage() {
                     <FormItem>
                       <FormLabel>Seu email</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input disabled {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <PhoneInput name="phone" control={form.control} />
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <PhoneInput {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Button size="lg">Prosseguir para o pagamento</Button>
-      </div>
-    </>
+          <Button size="lg" disabled={loadingSubmit || cart.length === 0}>
+            {loadingSubmit ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              "Fechar pedido"
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

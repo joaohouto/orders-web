@@ -11,14 +11,20 @@ export const CartItem = ({ item }: Props) => {
     <div className="flex items-center gap-5">
       <div className="w-16 overflow-hidden">
         <img
-          src={item.product.image}
-          className="w-full h-auto rounded-md object-cover"
+          src={item.product.images[0] || "/placeholder.svg"}
+          className="w-16 h-16 rounded-md object-cover border"
         />
       </div>
       <div className="flex-1">
-        <p className="text-md">{item.product.name}</p>
+        <p className="text-md">
+          {item.product.name} ({item.product.variationName})
+        </p>
+
+        {item.product.note && (
+          <p className="text-xs opacity-50">{item.product.note}</p>
+        )}
         <p className="text-xs opacity-50">
-          {moneyFormatter.format(item.product.price)}
+          {moneyFormatter.format(+item.product.price)}
         </p>
       </div>
       <div>

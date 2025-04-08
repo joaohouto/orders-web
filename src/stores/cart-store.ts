@@ -1,5 +1,5 @@
 import { Cart } from "@/types/cart";
-import { Product } from "@/types/product";
+import { CartProduct } from "@/types/product";
 import { create } from "zustand";
 
 type States = {
@@ -7,7 +7,8 @@ type States = {
 };
 
 type Actions = {
-  upsertCartItem: (product: Product, quantity: number) => void;
+  upsertCartItem: (product: CartProduct, quantity: number) => void;
+  clearCart: () => void;
 };
 
 const initialState: States = {
@@ -43,4 +44,9 @@ export const useCartStore = create<States & Actions>()((set) => ({
 
       return { ...state, cart: newCart };
     }),
+  clearCart: () => {
+    set(() => {
+      return { cart: [] };
+    });
+  },
 }));

@@ -1,8 +1,11 @@
 import { Header } from "@/components/header";
+import { ErrorPage } from "@/components/page-error";
+import { LoadingPage } from "@/components/page-loading";
 import { ProductItem } from "@/components/products/item";
 import { Button } from "@/components/ui/button";
 import { info } from "@/config/app";
 import api from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { InstagramIcon } from "lucide-react";
 import { useParams } from "react-router";
@@ -24,40 +27,27 @@ export function StorePage() {
     return res.data;
   }
 
-  const products = [
-    {
-      id: "sadasdadasdas",
-      image:
-        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/07/Moletom-Personalizado-Preto-bordado.png",
-      name: "Moletom",
-      slug: "moletom",
-      price: 120,
-    },
-    {
-      id: "saidjsaoidjsa",
-      image:
-        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/07/Jaqueta-College-Personalizada-preto-com-branco-Bordado.png",
-      name: "Jaqueta College",
-      slug: "jaqueta-college",
-      price: 130,
-    },
-    {
-      id: "adadaasdasd",
-      image:
-        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/09/camisa-de-futebol-americano-premium-personalizada.png",
-      name: "Camisa Futebol Americano",
-      slug: "camisa-futebol-americano",
-      price: 90,
-    },
-    {
-      id: "asdsadasdsadsa",
-      image:
-        "https://www.cataventouniformes.com.br/wp-content/uploads/2024/07/Camisa-baseball-Personalizada-bordado.png",
-      name: "Camisa Baseball",
-      slug: "camisa-baseball",
-      price: 90,
-    },
-  ];
+  const {
+    data: products,
+    isLoadingProducts,
+    isErrorProducts,
+  } = useQuery({
+    queryKey: [`store-${storeSlug}-products`],
+    queryFn: getStoreProducts,
+  });
+
+  async function getStoreProducts() {
+    const res = await api.get(`/stores/${storeSlug}/products`);
+    return res.data;
+  }
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (isError) {
+    return <ErrorPage />;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -65,10 +55,12 @@ export function StorePage() {
 
       <div className="w-full md:w-[720px] flex flex-col p-8 gap-4">
         <section className="mb-8 space-y-4">
-          <img
-            src={store.banner}
-            className="w-full h-[200px] bg-muted rounded-xl border object-cover"
-          />
+          {store.banner && (
+            <img
+              src={store.banner}
+              className="w-full h-[200px] bg-muted rounded-xl border object-cover"
+            />
+          )}
 
           <div className="flex items-center gap-8">
             <img
@@ -79,20 +71,22 @@ export function StorePage() {
               <h1 className="text-2xl font-semibold tracking-tight">
                 {store.name}
               </h1>
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full"
-                asChild
-              >
-                <a
-                  href={`https://instagram.com/${store.instagram}`}
-                  target="_blank"
+              {store.instagram && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  asChild
                 >
-                  <InstagramIcon />
-                  {store.instagram}
-                </a>
-              </Button>
+                  <a
+                    href={`https://instagram.com/${store.instagram}`}
+                    target="_blank"
+                  >
+                    <InstagramIcon />
+                    {store.instagram}
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         </section>
@@ -101,9 +95,9 @@ export function StorePage() {
           <h2 className="text-sm uppercase font-medium mb-4 text-muted-foreground">
             Produtos
           </h2>
-          {products.length > 0 && (
+          {products?.data?.length > 0 && (
             <div className="grid gap-5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-              {products.map((product) => (
+              {products?.data?.map((product: any) => (
                 <ProductItem key={product.id} item={product} />
               ))}
             </div>

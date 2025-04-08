@@ -1,10 +1,11 @@
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { AlertCircleIcon, PlusIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CreateStoreButton } from "./components/create-store-dialog";
 
 export function AppPage() {
   const {
@@ -30,12 +31,12 @@ export function AppPage() {
             <Link
               key={store.id}
               to={`/app/${store.slug}`}
-              className="flex bg-background items-center p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+              className="flex bg-background items-center p-3 rounded-lg border hover:border-primary transition-colors"
             >
               <img
                 src={store.icon}
                 alt={store.name}
-                className="object-cover w-12 h-12 rounded-md overflow-hidden mr-3"
+                className="object-cover w-12 h-12 rounded-md overflow-hidden mr-3 bg-muted border"
               />
               <span className="font-medium">{store.name}</span>
             </Link>
@@ -49,10 +50,14 @@ export function AppPage() {
             </div>
           )}
 
-          <Button className="w-full flex items-center justify-center gap-2 mt-6">
-            <PlusIcon className="h-4 w-4" />
-            Criar nova loja
-          </Button>
+          {isError && (
+            <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <AlertCircleIcon />
+              <span>Erro ao buscar dados</span>
+            </div>
+          )}
+
+          <CreateStoreButton onCreateStore={() => alert("opa")} />
         </div>
       </div>
     </div>

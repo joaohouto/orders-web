@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useMask } from "@react-input/mask";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Loader, SaveIcon } from "lucide-react";
+import { ArrowLeft, Loader2, LogOut, SaveIcon } from "lucide-react";
 import { Header } from "@/components/header";
 import {
   Card,
@@ -48,7 +47,8 @@ const formSchema = z.object({
 export function ProfilePage() {
   const navigate = useNavigate();
 
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, signOut } = useAuth();
+
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,7 +56,7 @@ export function ProfilePage() {
     defaultValues: {
       name: user?.name,
       email: user?.email,
-      phone: user?.phone,
+      phone: user?.phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
     },
   });
 
@@ -87,14 +87,6 @@ export function ProfilePage() {
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />
         </Button>
-
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle>Seus pedidos</CardTitle>
-          </CardHeader>
-
-          <CardContent></CardContent>
-        </Card>
 
         <Card>
           <CardHeader className="border-b">
@@ -154,7 +146,7 @@ export function ProfilePage() {
                 />
                 <Button type="submit" disabled={loadingSubmit}>
                   {loadingSubmit ? (
-                    <Loader className="animate-spin" />
+                    <Loader2 className="animate-spin" />
                   ) : (
                     <SaveIcon />
                   )}

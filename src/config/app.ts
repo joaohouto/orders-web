@@ -1,3 +1,3 @@
 export const info = {
-  appName: "ezOrders",
+  appName: "vendeu",
 };

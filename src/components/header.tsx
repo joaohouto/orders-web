@@ -1,9 +1,9 @@
-import { User2 } from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router";
 import { CartSidebar } from "./cart/sidebar";
 import { info } from "@/config/app";
-import { ThemeToggle } from "./theme-toggle";
+import { NavUserButton } from "./nav-user";
 
 export function Header() {
   return (
@@ -12,15 +12,9 @@ export function Header() {
         <h1 className="text-xl font-semibold">{info.appName}</h1>
 
         <div className="flex gap-2">
-          <ThemeToggle />
-
-          <Button variant="outline" asChild>
-            <Link to="/profile">
-              <User2 /> Seu perfil
-            </Link>
-          </Button>
-
           <CartSidebar />
+
+          <NavUserButton />
         </div>
       </div>
     </div>

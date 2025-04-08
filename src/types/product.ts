@@ -1,7 +1,24 @@
 export type Product = {
   id: string;
-  slug: string;
   name: string;
-  image: string;
-  price: number;
+  slug: string;
+  description: string;
+  images: string[];
+  storeId: string;
+  variations: {
+    id: string;
+    name: string;
+    price: string;
+  }[];
+};
+
+export type CartProduct = {
+  id: string;
+  storeId: string;
+  productId: string;
+  name: string;
+  images: string[];
+  variationName: string;
+  price: string;
+  note: string;
 };

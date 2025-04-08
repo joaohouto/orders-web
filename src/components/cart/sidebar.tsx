@@ -11,20 +11,22 @@ import { Bird, ShoppingCartIcon } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import { CartItem } from "./item";
 import { moneyFormatter } from "@/lib/utils";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 export const CartSidebar = () => {
+  const navigate = useNavigate();
+
   const { cart } = useCartStore((state) => state);
 
   let subtotal = 0;
   for (const item of cart) {
-    subtotal += item.quantity * item.product.price;
+    subtotal += item.quantity * +item.product.price;
   }
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button className="relative">
+        <Button className="relative" variant="outline">
           <ShoppingCartIcon className="mr-1" />
           <p>Carrinho</p>
           {cart.length > 0 && (
@@ -67,8 +69,12 @@ export const CartSidebar = () => {
           <Separator className="my-4" />
 
           <div className="text-center">
-            <Button className="w-full" disabled={cart.length === 0} asChild>
-              <Link to="/checkout">Finalizar compra</Link>
+            <Button
+              className="w-full"
+              disabled={cart.length === 0}
+              onClick={() => navigate("/checkout")}
+            >
+              Finalizar compra
             </Button>
           </div>
         </div>

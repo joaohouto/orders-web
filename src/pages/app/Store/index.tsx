@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { AppHeader } from "@/components/app-header";
 import { useParams } from "react-router";
 import { SaveIcon } from "lucide-react";
-import { PhoneInput } from "@/components/phone-input";
+import { useState } from "react";
 
 const formSchema = z.object({
   name: z.string({
@@ -28,22 +28,12 @@ const formSchema = z.object({
   instagram: z.string({
     message: "Informe este campo",
   }),
-  phone: z
-    .string()
-    .min(1, "O telefone é obrigatório")
-    .refine(
-      (value) => {
-        const digits = value.replace(/\D/g, "");
-        return digits.length === 10 || digits.length === 11;
-      },
-      {
-        message: "O telefone deve ter 10 dígitos ou 11 dígitos",
-      }
-    ),
 });
 
 export function StorePage() {
   const { storeSlug } = useParams();
+
+  const [loadingSubmit, setLoadingSpin] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,9 +44,7 @@ export function StorePage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-  }
+  function onSubmit(values: z.infer<typeof formSchema>) {}
 
   return (
     <>
@@ -70,7 +58,7 @@ export function StorePage() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título</FormLabel>
+                  <FormLabel>Nome</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -120,8 +108,6 @@ export function StorePage() {
                 </FormItem>
               )}
             />
-
-            <PhoneInput name="phone" control={form.control} />
 
             <Button type="submit">
               <SaveIcon />
