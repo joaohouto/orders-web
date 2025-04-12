@@ -120,29 +120,33 @@ export function ProductPage() {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative aspect-square overflow-hidden rounded-lg">
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute left-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background text-foreground"
-                onClick={prevImage}
-              >
-                <ChevronLeft />
-                <span className="sr-only">Previous image</span>
-              </Button>
+              {product.images?.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background text-foreground"
+                  onClick={prevImage}
+                >
+                  <ChevronLeft />
+                  <span className="sr-only">Previous image</span>
+                </Button>
+              )}
               <img
                 src={product.images[currentImage] || "/placeholder.svg"}
                 alt={product.name}
                 className="object-cover w-full"
               />
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background text-foreground"
-                onClick={nextImage}
-              >
-                <ChevronRight className="h-4 w-4" />
-                <span className="sr-only">Next image</span>
-              </Button>
+              {product.images?.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background text-foreground"
+                  onClick={nextImage}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Next image</span>
+                </Button>
+              )}
             </div>
             <div className="flex space-x-2 overflow-auto pb-2">
               {product.images?.map((image, index) => (

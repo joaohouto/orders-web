@@ -1,5 +1,5 @@
 import { Row } from "@tanstack/react-table";
-import { ArrowUpRight, EditIcon, MoreHorizontal } from "lucide-react";
+import { ArrowUpRight, EditIcon, MoreHorizontal, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link, useParams } from "react-router";
+import { toast } from "sonner";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -20,6 +21,14 @@ export function DataTableRowActions<TData>({
   const rowItem = row.original;
 
   const { storeSlug } = useParams();
+
+  async function deleteRow(id: string) {
+    try {
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao excluir!");
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -42,9 +51,16 @@ export function DataTableRowActions<TData>({
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link to={`/app/${storeSlug}/products/e/${rowItem.id}`}>
+          <Link to={`/app/${storeSlug}/products/e/${rowItem.slug}`}>
             <EditIcon />
             Editar produto
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link to={`/app/${storeSlug}/products/e/${rowItem.id}`}>
+            <Trash2 />
+            Excluir produto
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

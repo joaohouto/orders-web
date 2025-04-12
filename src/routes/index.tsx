@@ -15,6 +15,7 @@ import { StorePage as AppStorePage } from "@/pages/app/Store";
 
 import { ProductsPage } from "@/pages/app/Products";
 import { CreateProductPage } from "@/pages/app/Products/Create";
+import { EditProductPage } from "@/pages/app/Products/Edit";
 
 import { OrdersPage } from "@/pages/app/Orders";
 import { ViewOrderPage } from "@/pages/app/Orders/View";
@@ -43,6 +44,10 @@ export function Routes() {
 
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/create" element={<CreateProductPage />} />
+            <Route
+              path="products/e/:productSlug"
+              element={<EditProductPage />}
+            />
 
             <Route path="team" element={<TeamPage />} />
 

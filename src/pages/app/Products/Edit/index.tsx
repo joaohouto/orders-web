@@ -26,6 +26,9 @@ import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { LoadingPage } from "@/components/page-loading";
+import { ErrorPage } from "@/components/page-error";
 
 const formSchema = z.object({
   slug: z.string({
@@ -49,18 +52,53 @@ const formSchema = z.object({
   ),
 });
 
-export function CreateProductPage() {
+export function EditProductPage() {
   const [loadingAction, setLoadingAction] = useState(false);
 
-  const { storeSlug } = useParams();
+  const { storeSlug, productSlug } = useParams();
   const navigate = useNavigate();
+
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [`product-${productSlug}`],
+    queryFn: getProducts,
+  });
+
+  async function getProducts() {
+    const res = await api.get(`/stores/${storeSlug}/products/${productSlug}`);
+    return res.data;
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
+      slug: "",
+      description: "",
       isActive: true,
+      acceptOrderNote: false,
+      variations: [],
     },
   });
+
+  useEffect(() => {
+    if (product) {
+      form.reset({
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
+        isActive: product.isActive,
+        acceptOrderNote: product.acceptOrderNote,
+        variations: product.variations.map((v: any) => ({
+          name: v.name,
+          price: v.price,
+        })),
+      });
+    }
+  }, [product]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -69,9 +107,9 @@ export function CreateProductPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await api.post(`/stores/${storeSlug}/products`, values);
+      await api.put(`/stores/${storeSlug}/products/${productSlug}`, values);
 
-      toast.success(`Produto criado! ID ${response.data.id}`);
+      toast.success(`Produto atualizado!`);
 
       navigate(-1);
     } catch (err) {
@@ -89,12 +127,20 @@ export function CreateProductPage() {
     }
   }, [form.watch("name")]);
 
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (isError) {
+    return <ErrorPage />;
+  }
+
   return (
     <>
       <AppHeader
         routes={[
           { path: "products", title: "Produtos" },
-          { path: "create", title: "Criar novo" },
+          { path: "create", title: `Editar ${product.name}` },
         ]}
       />
 

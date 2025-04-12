@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
+import Decimal from "decimal.js";
+import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<any>[] = [
   {
@@ -42,16 +44,6 @@ export const columns: ColumnDef<any>[] = [
   },
 
   {
-    accessorKey: "isActive",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Estado" />
-    ),
-    cell: ({ row }) => {
-      return <span>{row.getValue("isActive") ? "Ativo" : "Desativado"}</span>;
-    },
-  },
-
-  {
     accessorKey: "name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nome" />
@@ -66,14 +58,18 @@ export const columns: ColumnDef<any>[] = [
   },
 
   {
-    accessorKey: "price",
+    accessorKey: "variations",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Preço" />
+      <DataTableColumnHeader column={column} title="Variações" />
     ),
     cell: ({ row }) => {
       return (
         <span className="max-w-[100px] truncate font-medium">
-          {moneyFormatter.format(row.getValue("price"))}
+          {row.getValue("variations")?.map((variation: any) => (
+            <Badge variant="outline" key={variation.id}>
+              {variation.name}({moneyFormatter.format(variation.price)})
+            </Badge>
+          ))}
         </span>
       );
     },
@@ -86,7 +82,7 @@ export const columns: ColumnDef<any>[] = [
     ),
     cell: ({ row }) => (
       <div className="">
-        {dayjs(row.getValue("createdAt")).format("DD MMM YYYY")}
+        {dayjs(row.getValue("createdAt")).format("DD-MM-YYYY")}
       </div>
     ),
     enableSorting: true,

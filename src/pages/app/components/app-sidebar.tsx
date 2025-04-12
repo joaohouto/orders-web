@@ -33,6 +33,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link, useParams } from "react-router";
+import { info } from "@/config/app";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { storeSlug } = useParams();
@@ -90,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Link to="/app">
                 <GalleryVerticalEnd className="h-5 w-5" />
-                <span className="text-base font-semibold">Orders</span>
+                <span className="text-base font-semibold">{info.appName}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

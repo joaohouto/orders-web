@@ -11,12 +11,12 @@ import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { moneyFormatter } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { CircleXIcon, CreditCardIcon } from "lucide-react";
+import { CircleXIcon, CreditCardIcon, Loader2 } from "lucide-react";
 import { CancelOrderDialog } from "./cancel-order-dialog";
 import { toast } from "sonner";
 import { useState } from "react";
-import { stat } from "fs";
 import { Link } from "react-router";
+import api from "@/services/api";
 
 type ProductItem = {
   imageUrl: string;
@@ -44,6 +44,7 @@ type OrderItemProps = {
   status: OrderStatus;
   products: ProductItem[];
   total: number;
+  onCancelled?: () => void;
 };
 
 export function OrderItem({
@@ -52,8 +53,25 @@ export function OrderItem({
   status,
   products,
   total,
+  onCancelled,
 }: OrderItemProps) {
   const [open, setOpen] = useState(false);
+  const [loadingAction, setLoadingAction] = useState(false);
+
+  async function redirectToCheckout() {
+    setLoadingAction(true);
+
+    try {
+      const response = await api.get(`/orders/${orderId}/payment/mercadopago`);
+
+      window.location.href = response.data.redirectTo;
+    } catch (err) {
+      console.log(err);
+      toast.error("Erro ao redirecionar para o Mercado Pago");
+    } finally {
+      setLoadingAction(false);
+    }
+  }
 
   return (
     <>
@@ -70,7 +88,7 @@ export function OrderItem({
             </CardDescription>
           </div>
 
-          <Badge variant={status === "CANCELED" ? "outline" : "default"}>
+          <Badge variant={status === "CANCELED" ? "destructive" : "default"}>
             {orderStatuses[status]}
           </Badge>
         </CardHeader>
@@ -109,11 +127,26 @@ export function OrderItem({
 
         <CardFooter className="border-t rounded-b-xl pb-6 pt-6 gap-4 flex flex-col md:flex-row">
           {status === "PENDING" && (
-            <Button type="button" variant="secondary" asChild>
+            <Button type="button" asChild>
               <Link to={`/orders/${orderId}/payment`}>
                 <CreditCardIcon />
-                Efetuar pagamento
+                Pagar com PIX
               </Link>
+            </Button>
+          )}
+
+          {status === "PENDING" && (
+            <Button
+              type="button"
+              onClick={redirectToCheckout}
+              disabled={loadingAction}
+            >
+              {loadingAction ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <CreditCardIcon />
+              )}
+              Mercado Pago
             </Button>
           )}
 
@@ -135,9 +168,7 @@ export function OrderItem({
         onOpenChange={setOpen}
         orderId={orderId}
         onSuccess={() => {
-          // refetch orders, toast, etc
-          toast.success("Pedido cancelado com sucesso!");
-          window.location.href = "/orders";
+          onCancelled?.();
         }}
       />
     </>

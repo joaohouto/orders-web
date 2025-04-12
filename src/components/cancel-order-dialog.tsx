@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import axios from "axios";
 import api from "@/services/api";
 import { toast } from "sonner";
 import { CircleXIcon, Loader2 } from "lucide-react";
@@ -28,13 +27,17 @@ export function CancelOrderDialog({
   const [loading, setLoading] = useState(false);
 
   const handleCancelOrder = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
       await api.patch(`/orders/${orderId}/cancel`);
+
       onSuccess?.();
       onOpenChange(false);
+
+      toast.success("Pedido cancelado com sucesso!");
     } catch (err) {
-      console.error("Erro ao cancelar o pedido", err);
+      console.error(err);
       toast.error("Erro ao cancelar pedido");
     } finally {
       setLoading(false);

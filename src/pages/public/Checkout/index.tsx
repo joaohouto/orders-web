@@ -66,7 +66,7 @@ export function CheckoutPage() {
     defaultValues: {
       name: user?.name,
       email: user?.email,
-      phone: user?.phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
+      phone: user?.phone?.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
     },
   });
 
@@ -76,43 +76,37 @@ export function CheckoutPage() {
     try {
       const response = await api.patch("/users/profile", {
         name: values.name,
-        phone: values.phone.replace(/\D/g, ""),
+        phone: values.phone?.replace(/\D/g, ""),
       });
 
       updateUser(response.data);
 
-      createOrder();
+      const items = cart.map((cartItem: Cart) => {
+        return {
+          productId: cartItem.product.productId,
+          variationId: cartItem.product.id,
+          quantity: cartItem.quantity,
+          note: cartItem.product.note,
+        };
+      });
+
+      const orderResponse = await api.post(
+        `/stores/${cart[0].product.storeId}/orders`,
+        {
+          items,
+        }
+      );
+
+      toast.success(`Pedido criado! ID ${orderResponse.data.id}`);
+
+      navigate("/orders");
+      clearCart();
     } catch (err) {
-      toast.error("Erro ao salvar! Tente novamente");
+      toast.error("Erro ao criar pedido");
       console.log(err);
     } finally {
       setLoadingSubmit(false);
     }
-  }
-
-  async function createOrder() {
-    const items = cart.map((cartItem: Cart) => {
-      return {
-        productId: cartItem.product.productId,
-        variationId: cartItem.product.id,
-        quantity: cartItem.quantity,
-        note: cartItem.product.note,
-      };
-    });
-
-    const response = await api.post(
-      `/stores/${cart[0].product.storeId}/orders`,
-      {
-        items,
-      }
-    );
-
-    console.log(response.data);
-
-    toast.success(`Pedido criado! ID ${response.data.id}`);
-
-    navigate("/orders");
-    clearCart();
   }
 
   return (

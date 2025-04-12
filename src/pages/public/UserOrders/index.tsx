@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Header } from "@/components/header";
 
 import { useNavigate } from "react-router";
@@ -37,7 +37,11 @@ export function UserOrdersPage() {
           <ArrowLeft />
         </Button>
 
-        {isLoading && <span>Carregando pedidos...</span>}
+        {isLoading && (
+          <div className="flex-1 flex justify-center items-center">
+            <Loader2 className="animate-spin" />
+          </div>
+        )}
 
         {isError && <span>Erro ao carregar os seus pedidos</span>}
 
@@ -50,6 +54,7 @@ export function UserOrdersPage() {
             status={order.status}
             products={order.items}
             total={order.totalPrice}
+            onCancelled={() => {}}
           />
         ))}
       </div>
