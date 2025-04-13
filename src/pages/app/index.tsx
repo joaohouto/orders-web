@@ -1,11 +1,11 @@
 import { Link } from "react-router";
 
-import { Button } from "@/components/ui/button";
-import { AlertCircleIcon, PlusIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateStoreButton } from "./components/create-store-dialog";
+import { info } from "@/config/app";
 
 export function AppPage() {
   const {
@@ -23,8 +23,10 @@ export function AppPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted">
-      <div className="w-full md:max-w-[400px] mx-auto my-auto flex flex-col gap-4 px-4 py-8">
+    <div className="min-h-screen bg-muted flex justify-center items-center">
+      <div className="w-full md:max-w-[400px] mx-auto my-auto flex flex-col gap-2 px-4 py-8">
+        <info.appIcon />
+
         <h2 className="text-xl font-semibold mb-4">Suas lojas</h2>
         <div className="space-y-4">
           {stores?.map((store: any) => (
@@ -54,6 +56,13 @@ export function AppPage() {
             <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
               <AlertCircleIcon />
               <span>Erro ao buscar dados</span>
+            </div>
+          )}
+
+          {stores?.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <AlertCircleIcon />
+              <span>Nenhuma loja aqui</span>
             </div>
           )}
 

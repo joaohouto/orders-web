@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Header } from "@/components/header";
 
@@ -7,26 +6,37 @@ import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/auth";
 import api from "@/services/api";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrderItem } from "@/components/order-item";
 
 export function UserOrdersPage() {
   const navigate = useNavigate();
-
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const queryKey = [`orders-${user.id}`];
 
   const {
     data: myOrders,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: [`orders-${user.id}`],
+    queryKey,
     queryFn: getMyOrders,
   });
 
   async function getMyOrders() {
     const res = await api.get(`/me/orders`);
     return res.data;
+  }
+
+  function handleCancelOrder(orderId: string) {
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old) return old;
+      return old.map((order: any) =>
+        order.id === orderId ? { ...order, status: "CANCELED" } : order
+      );
+    });
   }
 
   return (
@@ -54,7 +64,7 @@ export function UserOrdersPage() {
             status={order.status}
             products={order.items}
             total={order.totalPrice}
-            onCancelled={() => {}}
+            onCancelled={() => handleCancelOrder(order.id)}
           />
         ))}
       </div>

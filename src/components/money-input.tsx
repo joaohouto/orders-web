@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import {
   FormControl,
   FormField,
@@ -25,14 +25,17 @@ export default function MoneyInput({
   label,
   placeholder,
 }: TextInputProps) {
-  const initialValue = form.getValues()[name]
-    ? moneyFormatter.format(form.getValues()[name])
-    : "";
-
   const [value, setValue] = useReducer((_: any, next: string) => {
     const digits = next.replace(/\D/g, "");
     return moneyFormatter.format(Number(digits) / 100);
-  }, initialValue);
+  }, "");
+
+  // 🔥 Atualiza o valor interno se o valor do form mudar (ex: reset)
+  useEffect(() => {
+    const current = form.getValues(name);
+    const formatted = current ? moneyFormatter.format(current) : "";
+    setValue(formatted);
+  }, [form.watch(name)]); // reage quando esse campo muda
 
   function handleChange(realChangeFn: Function, formattedValue: string) {
     const digits = formattedValue.replace(/\D/g, "");
@@ -45,7 +48,6 @@ export default function MoneyInput({
       control={form.control}
       name={name}
       render={({ field }) => {
-        field.value = value;
         const _change = field.onChange;
 
         return (
@@ -55,7 +57,6 @@ export default function MoneyInput({
               <Input
                 placeholder={placeholder}
                 type="text"
-                {...field}
                 onChange={(ev) => {
                   setValue(ev.target.value);
                   handleChange(_change, ev.target.value);

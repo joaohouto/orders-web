@@ -17,7 +17,13 @@ import { AppHeader } from "@/components/app-header";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CirclePlus, Loader2, SaveIcon, Trash2 } from "lucide-react";
+import {
+  CirclePlus,
+  CircleXIcon,
+  Loader2,
+  SaveIcon,
+  Trash2,
+} from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import MoneyInput from "@/components/money-input";
@@ -44,6 +50,7 @@ const formSchema = z.object({
     .optional(),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
+  images: z.array(z.string().url()),
   variations: z.array(
     z.object({
       name: z.string({ message: "Informe este campo" }),
@@ -74,14 +81,6 @@ export function EditProductPage() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      slug: "",
-      description: "",
-      isActive: true,
-      acceptOrderNote: false,
-      variations: [],
-    },
   });
 
   useEffect(() => {
@@ -92,20 +91,23 @@ export function EditProductPage() {
         description: product.description,
         isActive: product.isActive,
         acceptOrderNote: product.acceptOrderNote,
+        images: product.images,
         variations: product.variations.map((v: any) => ({
           name: v.name,
-          price: v.price,
+          price: Number(v.price),
         })),
       });
     }
   }, [product]);
 
-  const { fields, append, remove } = useFieldArray({
+  const variations = useFieldArray({
     control: form.control,
     name: "variations",
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingAction(true);
+
     try {
       await api.put(`/stores/${storeSlug}/products/${productSlug}`, values);
 
@@ -115,6 +117,8 @@ export function EditProductPage() {
     } catch (err) {
       console.log(err);
       toast.error("Erro ao criar produto");
+    } finally {
+      setLoadingAction(false);
     }
   }
 
@@ -126,6 +130,27 @@ export function EditProductPage() {
       );
     }
   }, [form.watch("name")]);
+
+  const images = useFieldArray({
+    control: form.control,
+    name: "images",
+  });
+
+  async function handleImageUpload(files: File[]) {
+    try {
+      const formData = new FormData();
+      formData.append("file", files[0]);
+
+      const response = await api.post(`/files/upload`, formData);
+
+      toast.success("Imagem carregada");
+
+      return response.data;
+    } catch (err) {
+      console.log(err);
+      toast.error("Erro ao carregar arquivo");
+    }
+  }
 
   if (isLoading) {
     return <LoadingPage />;
@@ -243,7 +268,12 @@ export function EditProductPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ name: "", price: 0 })}
+                  onClick={() =>
+                    variations.append({
+                      name: "",
+                      price: form.getValues("variations")[0].price || 0,
+                    })
+                  }
                 >
                   <CirclePlus />
                   Adicionar variante
@@ -254,59 +284,108 @@ export function EditProductPage() {
                 Adicione variações para seu produto com seus respectivos preços.
               </FormDescription>
 
-              {fields.map((field, index) => (
-                <Card key={field.id} className="border border-muted">
-                  <CardContent className="pt-2">
-                    <div className="grid gap-4 sm:grid-cols-[auto_140px]">
-                      <FormField
-                        control={form.control}
-                        name={`variations.${index}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome da variante</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Ex.: P, M, G, etc."
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              <div className="overflow-y-auto max-h-[600px] space-y-2">
+                {variations.fields.map((field, index) => (
+                  <Card key={field.id} className="border border-muted">
+                    <CardContent className="pt-2">
+                      <div className="grid gap-4 sm:grid-cols-[auto_140px]">
+                        <FormField
+                          control={form.control}
+                          name={`variations.${index}.name`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome da variante</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex.: P, M, G, etc."
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                      <MoneyInput
-                        form={form}
-                        label="Preço"
-                        name={`variations.${index}.price`}
-                        placeholder="R$"
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-end border-t bg-muted/20 p-2">
+                        <MoneyInput
+                          form={form}
+                          label="Preço"
+                          name={`variations.${index}.price`}
+                          placeholder="R$"
+                        />
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-end border-t bg-muted/20 p-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => variations.remove(index)}
+                        className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                      >
+                        <Trash2 />
+                        Remover
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+                {form.formState.errors.variations?.root && (
+                  <p className="text-sm font-medium text-destructive">
+                    {form.formState.errors.variations.root.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            <Label>Imagens</Label>
+
+            <div className="flex gap-4 flex-wrap">
+              {images.fields.map((field, index) => (
+                <div key={field.id}>
+                  <div className="relative w-fit">
+                    <img
+                      src={form.watch(`images.${index}`)}
+                      className="size-[100px] border rounded-md"
+                    />
+
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => remove(index)}
-                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                      onClick={() => images.remove(index)}
+                      className="absolute right-0 top-0"
                     >
-                      <Trash2 />
-                      Remover
+                      <CircleXIcon />
                     </Button>
-                  </CardFooter>
-                </Card>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name={`images.${index}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input className="hidden" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               ))}
-              {form.formState.errors.variations?.root && (
-                <p className="text-sm font-medium text-destructive">
-                  {form.formState.errors.variations.root.message}
-                </p>
-              )}
             </div>
 
-            <Label>Imagens</Label>
-
-            <FileUploader multiple maxFileCount={5} />
+            {images.fields.length < 5 && (
+              <FileUploader
+                multiple
+                maxFileCount={5}
+                onUpload={async (files: File[]) => {
+                  const file = await handleImageUpload(files);
+                  images.append(file.url);
+                }}
+              />
+            )}
 
             <Button
               type="submit"

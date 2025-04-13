@@ -4,17 +4,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
-import {
-  Crown,
-  MailCheck,
-  MailX,
-  MinusCircle,
-  User,
-  Verified,
-} from "lucide-react";
+
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
-import Decimal from "decimal.js";
 import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<any>[] = [
@@ -64,13 +56,16 @@ export const columns: ColumnDef<any>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <span className="max-w-[100px] truncate font-medium">
+        <div className="flex gap-3">
           {row.getValue("variations")?.map((variation: any) => (
-            <Badge variant="outline" key={variation.id}>
-              {variation.name}({moneyFormatter.format(variation.price)})
-            </Badge>
+            <div className="flex gap-1">
+              {variation.name}
+              <Badge variant="outline" key={variation.id}>
+                {moneyFormatter.format(variation.price)}
+              </Badge>
+            </div>
           ))}
-        </span>
+        </div>
       );
     },
   },
@@ -82,7 +77,7 @@ export const columns: ColumnDef<any>[] = [
     ),
     cell: ({ row }) => (
       <div className="">
-        {dayjs(row.getValue("createdAt")).format("DD-MM-YYYY")}
+        {dayjs(row.getValue("createdAt")).format("DD/MM/YYYY")}
       </div>
     ),
     enableSorting: true,

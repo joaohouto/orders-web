@@ -23,12 +23,19 @@ export const CartSidebar = () => {
     subtotal += item.quantity * +item.product.price;
   }
 
+  let items = 0;
+  for (const item of cart) {
+    items += item.quantity;
+  }
+
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button className="relative" variant="outline">
           <ShoppingCartIcon className="mr-1" />
-          <p>Carrinho</p>
+          <p>
+            Carrinho <span className="text-xs">({items})</span>
+          </p>
           {cart.length > 0 && (
             <div className="absolute size-3 bg-red-600 rounded-full -right-1 -top-1" />
           )}

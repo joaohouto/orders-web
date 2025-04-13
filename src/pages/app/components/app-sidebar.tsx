@@ -1,7 +1,10 @@
 import * as React from "react";
 import {
   ArrowUpCircleIcon,
+  ArrowUpRight,
+  ArrowUpRightFromCircleIcon,
   BarChartIcon,
+  Bird,
   CameraIcon,
   ClipboardListIcon,
   DatabaseIcon,
@@ -9,14 +12,17 @@ import {
   FileIcon,
   FileTextIcon,
   FolderIcon,
+  GalleryHorizontalEnd,
   GalleryVertical,
   GalleryVerticalEnd,
   HelpCircleIcon,
   LayoutDashboardIcon,
   ListIcon,
+  NotebookText,
   Package,
   SearchIcon,
   SettingsIcon,
+  ShoppingCartIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -61,21 +67,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Package,
       },
       {
-        title: "Vendas",
+        title: "Pedidos",
         url: `/app/${storeSlug}/orders`,
-        icon: BarChartIcon,
+        icon: NotebookText,
       },
     ],
     navSecondary: [
       {
-        title: "Configurações",
-        url: "/settings",
-        icon: SettingsIcon,
-      },
-      {
-        title: "Preciso de ajuda",
-        url: "mailto:suporte@joaocouto.com",
-        icon: HelpCircleIcon,
+        title: "Veja a loja ao vivo",
+        url: `/${storeSlug}`,
+        icon: ArrowUpRight,
       },
     ],
   };
@@ -90,8 +91,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link to="/app">
-                <GalleryVerticalEnd className="h-5 w-5" />
-                <span className="text-base font-semibold">{info.appName}</span>
+                <info.appIcon />
+                <span className="text-base font-semibold tracking-tighter">
+                  {info.appName}
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

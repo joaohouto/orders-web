@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusIcon } from "lucide-react";
+import { CirclePlusIcon } from "lucide-react";
 
 export function CreateStoreButton({
   onCreateStore,
@@ -21,7 +21,7 @@ export function CreateStoreButton({
     <Dialog>
       <DialogTrigger asChild>
         <Button className="w-full flex items-center justify-center gap-2 mt-6">
-          <PlusIcon className="h-4 w-4" />
+          <CirclePlusIcon className="h-4 w-4" />
           Criar nova loja
         </Button>
       </DialogTrigger>

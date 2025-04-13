@@ -45,10 +45,8 @@ export function AuthPage() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2 self-center font-semibold mb-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <GalleryVerticalEnd className="size-4" />
-                </div>
+              <div className="flex items-center gap-2 self-center font-semibold mb-2 tracking-tighter">
+                <info.appIcon />
                 {info.appName}
               </div>
 

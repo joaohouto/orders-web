@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
@@ -134,7 +141,7 @@ export function ProductPage() {
               <img
                 src={product.images[currentImage] || "/placeholder.svg"}
                 alt={product.name}
-                className="object-cover w-full"
+                className="object-cover w-full object-center bg-muted"
               />
               {product.images?.length > 1 && (
                 <Button
@@ -181,24 +188,38 @@ export function ProductPage() {
 
             <p className="text-muted-foreground">{product.description}</p>
 
-            {/* Size Selection */}
             <div>
               <h3 className="text-sm font-medium">Variações</h3>
 
-              <div className="mt-2 flex gap-2">
-                {product.variations?.map((variation: any) => (
-                  <button
-                    key={variation.id}
-                    className={`flex h-10 min-w-10 px-3 items-center justify-center rounded-md border text-sm font-medium transition-colors ${
-                      selectedVariation?.id === variation.id
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-input hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                    onClick={() => setSelectedVariation(variation)}
-                  >
-                    {variation.name}
-                  </button>
-                ))}
+              <div className="mt-2">
+                <Select
+                  value={selectedVariation?.id} // valor do select, se já tiver uma variação selecionada
+                  onValueChange={(value) => {
+                    const selected = product.variations.find(
+                      (v: any) => v.id === value
+                    );
+                    setSelectedVariation(selected); // atualiza o valor selecionado
+                  }}
+                >
+                  <SelectTrigger className="w-full h-10 px-3 rounded-md border text-sm font-medium">
+                    <SelectValue placeholder="Selecione uma variação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {product.variations?.map((variation: any) => (
+                      <SelectItem
+                        key={variation.id}
+                        value={variation.id} // usa o ID da variação como valor
+                        className={`${
+                          selectedVariation?.id === variation.id
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                      >
+                        {variation.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

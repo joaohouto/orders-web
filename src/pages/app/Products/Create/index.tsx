@@ -17,7 +17,13 @@ import { AppHeader } from "@/components/app-header";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CirclePlus, Loader2, SaveIcon, Trash2 } from "lucide-react";
+import {
+  CirclePlus,
+  CircleXIcon,
+  Loader2,
+  SaveIcon,
+  Trash2,
+} from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import MoneyInput from "@/components/money-input";
@@ -41,12 +47,15 @@ const formSchema = z.object({
     .optional(),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
-  variations: z.array(
-    z.object({
-      name: z.string({ message: "Informe este campo" }),
-      price: z.coerce.number({ message: "Informe um preço" }),
-    })
-  ),
+  images: z.array(z.string().url()),
+  variations: z
+    .array(
+      z.object({
+        name: z.string({ message: "Informe este campo" }),
+        price: z.coerce.number({ message: "Informe um preço" }),
+      })
+    )
+    .min(1, { message: "Adicione ao menos uma variação" }),
 });
 
 export function CreateProductPage() {
@@ -62,12 +71,14 @@ export function CreateProductPage() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const variations = useFieldArray({
     control: form.control,
     name: "variations",
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingAction(true);
+
     try {
       const response = await api.post(`/stores/${storeSlug}/products`, values);
 
@@ -77,6 +88,8 @@ export function CreateProductPage() {
     } catch (err) {
       console.log(err);
       toast.error("Erro ao criar produto");
+    } finally {
+      setLoadingAction(false);
     }
   }
 
@@ -84,10 +97,31 @@ export function CreateProductPage() {
     if (form.watch("name")) {
       form.setValue(
         "slug",
-        form.watch("name").toLocaleLowerCase().replaceAll(" ", "-")
+        form.watch("name")?.toLocaleLowerCase()?.replaceAll(" ", "-")
       );
     }
   }, [form.watch("name")]);
+
+  const images = useFieldArray({
+    control: form.control,
+    name: "images",
+  });
+
+  async function handleImageUpload(files: File[]) {
+    try {
+      const formData = new FormData();
+      formData.append("file", files[0]);
+
+      const response = await api.post(`/files/upload`, formData);
+
+      toast.success("Imagem carregada");
+
+      return response.data;
+    } catch (err) {
+      console.log(err);
+      toast.error("Erro ao carregar arquivo");
+    }
+  }
 
   return (
     <>
@@ -197,7 +231,7 @@ export function CreateProductPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ name: "", price: 0 })}
+                  onClick={() => variations.append({ name: "", price: 0 })}
                 >
                   <CirclePlus />
                   Adicionar variante
@@ -208,9 +242,9 @@ export function CreateProductPage() {
                 Adicione variações para seu produto com seus respectivos preços.
               </FormDescription>
 
-              {fields.map((field, index) => (
-                <Card key={field.id} className="border border-muted">
-                  <CardContent className="pt-2">
+              {variations.fields.map((field, index) => (
+                <Card key={field.id} className="border border-muted py-0">
+                  <CardContent className="pt-6">
                     <div className="grid gap-4 sm:grid-cols-[auto_140px]">
                       <FormField
                         control={form.control}
@@ -237,12 +271,12 @@ export function CreateProductPage() {
                       />
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-end border-t bg-muted/20 p-2">
+                  <CardFooter className="flex justify-end border-t bg-muted/20 p-4">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => remove(index)}
+                      onClick={() => variations.remove(index)}
                       className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                     >
                       <Trash2 />
@@ -258,9 +292,56 @@ export function CreateProductPage() {
               )}
             </div>
 
+            <Separator />
+
             <Label>Imagens</Label>
 
-            <FileUploader multiple maxFileCount={5} />
+            <div className="flex gap-4 flex-wrap">
+              {images.fields.map((field, index) => (
+                <div key={field.id}>
+                  <div className="relative w-fit">
+                    <img
+                      src={form.watch(`images.${index}`)}
+                      className="size-[100px] border rounded-md"
+                    />
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => images.remove(index)}
+                      className="absolute right-0 top-0"
+                    >
+                      <CircleXIcon />
+                    </Button>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name={`images.${index}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input className="hidden" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {images.fields.length < 5 && (
+              <FileUploader
+                multiple
+                maxFileCount={5}
+                onUpload={async (files: File[]) => {
+                  const file = await handleImageUpload(files);
+                  images.append(file.url);
+                }}
+              />
+            )}
 
             <Button
               type="submit"

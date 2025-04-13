@@ -56,7 +56,7 @@ export function PaymentPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-muted">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Complete seu pagamento</CardTitle>
@@ -95,9 +95,9 @@ export function PaymentPage() {
 
           <Alert>
             <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Importante</AlertTitle>
+            <AlertTitle>Atenção</AlertTitle>
             <AlertDescription className="text-balance">
-              Iremos confirmar o seu pagamento manualmente em até 1 dia útil.
+              Iremos confirmar o seu pagamento manualmente em até 1 dia útil
             </AlertDescription>
           </Alert>
 

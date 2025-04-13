@@ -1,3 +1,7 @@
+import { Bird } from "lucide-react";
+
 export const info = {
-  appName: "vendeu",
+  appName: "vendeuu",
+  appIcon: Bird,
+  appUrl: "https://vendeuu.web.app/",
 };

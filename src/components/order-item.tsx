@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router";
 import api from "@/services/api";
+import { MercadoPagoIcon } from "./mercadopago-icon";
+import { PixIcon } from "./pix-icon";
 
 type ProductItem = {
   imageUrl: string;
@@ -73,6 +75,17 @@ export function OrderItem({
     }
   }
 
+  function getStatusBadgeVariant(status: OrderStatus) {
+    switch (status) {
+      case "CANCELED":
+        return "destructive";
+      case "CONFIRMED":
+        return "success";
+      default:
+        return "default";
+    }
+  }
+
   return (
     <>
       <Card className="py-0">
@@ -88,7 +101,10 @@ export function OrderItem({
             </CardDescription>
           </div>
 
-          <Badge variant={status === "CANCELED" ? "destructive" : "default"}>
+          <Badge
+            variant={getStatusBadgeVariant(status)}
+            className="font-medium"
+          >
             {orderStatuses[status]}
           </Badge>
         </CardHeader>
@@ -129,7 +145,7 @@ export function OrderItem({
           {status === "PENDING" && (
             <Button type="button" asChild>
               <Link to={`/orders/${orderId}/payment`}>
-                <CreditCardIcon />
+                <PixIcon />
                 Pagar com PIX
               </Link>
             </Button>
@@ -150,7 +166,7 @@ export function OrderItem({
             </Button>
           )}
 
-          {status !== "CANCELED" && (
+          {["PENDING", "CONFIRMED"].includes(status) && (
             <Button
               type="button"
               variant="outline"

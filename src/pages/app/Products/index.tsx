@@ -21,7 +21,13 @@ export function ProductsPage() {
   });
 
   async function getProducts() {
-    const res = await api.get(`/stores/${storeSlug}/products`);
+    const res = await api.get(`/stores/${storeSlug}/products`, {
+      params: {
+        page: 1,
+        limit: 10,
+        q: "",
+      },
+    });
     return res.data;
   }
 
