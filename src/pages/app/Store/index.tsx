@@ -142,7 +142,7 @@ export function StorePage() {
                 <FormItem>
                   <FormLabel>Endereço</FormLabel>
                   <div className="flex gap-2">
-                    <div className="text-muted-foreground border-input flex h-9 w-[240px] min-w-0 rounded-md border bg-muted px-3 py-2 text-base shadow-xs md:text-sm">
+                    <div className="text-muted-foreground border-input flex h-9 w-[288px] min-w-0 rounded-md border bg-muted px-3 py-2 text-base shadow-xs md:text-sm">
                       <span>{info.appUrl}</span>
                     </div>
                     <FormControl>

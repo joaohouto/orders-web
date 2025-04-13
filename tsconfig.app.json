@@ -22,6 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    "noEmitOnError": false, // Permite emitir código mesmo com erros
+
+
     "baseUrl": ".",
     "paths": {
       "@/*": [

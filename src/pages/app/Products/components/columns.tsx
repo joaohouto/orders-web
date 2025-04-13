@@ -55,18 +55,7 @@ export const columns: ColumnDef<any>[] = [
       <DataTableColumnHeader column={column} title="Variações" />
     ),
     cell: ({ row }) => {
-      return (
-        <div className="flex gap-3">
-          {row.getValue("variations")?.map((variation: any) => (
-            <div className="flex gap-1">
-              {variation.name}
-              <Badge variant="outline" key={variation.id}>
-                {moneyFormatter.format(variation.price)}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      );
+      return <span>{row.getValue("variations").length}</span>;
     },
   },
 

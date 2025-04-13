@@ -17,7 +17,7 @@ export const CartItem = ({ item }: Props) => {
       </div>
       <div className="flex-1">
         <p className="text-md">
-          {item.product.name} ({item.product.variationName})
+          {item.product.name} - {item.product.variationName}
         </p>
 
         {item.product.note && (

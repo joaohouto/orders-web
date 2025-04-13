@@ -302,7 +302,7 @@ export function CreateProductPage() {
                   <div className="relative w-fit">
                     <img
                       src={form.watch(`images.${index}`)}
-                      className="size-[100px] border rounded-md"
+                      className="size-[100px] border rounded-md object-contain"
                     />
 
                     <Button
