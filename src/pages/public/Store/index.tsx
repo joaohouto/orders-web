@@ -29,8 +29,8 @@ export function StorePage() {
 
   const {
     data: products,
-    isLoadingProducts,
-    isErrorProducts,
+    isLoading: loadingProducts,
+    isError: errorProducts,
   } = useQuery({
     queryKey: [`store-${storeSlug}-products`],
     queryFn: getStoreProducts,

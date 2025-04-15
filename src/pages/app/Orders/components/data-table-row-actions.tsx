@@ -1,5 +1,5 @@
 import { Row } from "@tanstack/react-table";
-import { ArrowUpRight, MoreHorizontal, Receipt, Verified } from "lucide-react";
+import { ArrowUpRight, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,7 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const rowItem = row.original;
+  const rowItem = row.original as { id: string };
 
   const { storeSlug } = useParams();
 

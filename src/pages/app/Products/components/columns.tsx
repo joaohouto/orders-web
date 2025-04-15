@@ -6,10 +6,17 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 
 import dayjs from "dayjs";
-import { moneyFormatter } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 
-export const columns: ColumnDef<any>[] = [
+type Product = {
+  id: string;
+  name: string;
+  variations: {
+    name: string;
+    price: string;
+  }[];
+};
+
+export const columns: ColumnDef<Product>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -55,7 +62,9 @@ export const columns: ColumnDef<any>[] = [
       <DataTableColumnHeader column={column} title="Variações" />
     ),
     cell: ({ row }) => {
-      return <span>{row.getValue("variations").length}</span>;
+      const variations = row.getValue("variations") as object[];
+
+      return <span>{variations.length}</span>;
     },
   },
 

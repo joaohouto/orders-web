@@ -1,34 +1,50 @@
 import { AppHeader } from "@/components/app-header";
 
-import { columns } from "./components/columns";
-import { DataTable } from "./components/data-table";
-import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
-import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useSearchParams } from "react-router";
+
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
 
+import { DataTable } from "./components/data-table";
+import { columns } from "./components/columns";
+
 export function ProductsPage() {
   const { storeSlug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const {
-    data: products,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["products"],
-    queryFn: getProducts,
+  const page = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
+  const q = searchParams.get("q") || "";
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["products", { page, limit, q }],
+    queryFn: () => fetchProducts({ page, limit, q }),
   });
 
-  async function getProducts() {
-    const res = await api.get(`/stores/${storeSlug}/products`, {
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: newPage.toString(), limit: limit.toString(), q });
+  };
+
+  async function fetchProducts({
+    page,
+    limit,
+    q,
+  }: {
+    page: number;
+    limit: number;
+    q?: string;
+  }) {
+    const response = await api.get(`/stores/${storeSlug}/products`, {
       params: {
-        page: 1,
-        limit: 10,
-        q: "",
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(q ? { q } : {}),
       },
     });
-    return res.data;
+
+    return response.data;
   }
 
   if (isLoading) {
@@ -45,7 +61,7 @@ export function ProductsPage() {
 
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 px-8 py-4 ">
-          <DataTable data={products.data} columns={columns} />
+          <DataTable data={data.data} columns={columns} />
         </div>
       </div>
     </>

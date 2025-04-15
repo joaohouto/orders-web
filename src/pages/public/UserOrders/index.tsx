@@ -3,7 +3,6 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { Header } from "@/components/header";
 
 import { useNavigate } from "react-router";
-import { useAuth } from "@/hooks/auth";
 import api from "@/services/api";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,10 +10,9 @@ import { OrderItem } from "@/components/order-item";
 
 export function UserOrdersPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const queryKey = [`orders-${user.id}`];
+  const queryKey = [`myOrders`];
 
   const {
     data: myOrders,

@@ -7,14 +7,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { Link, useParams } from "react-router";
 
 export function StoreSelector() {
   const { storeSlug } = useParams();
-  const [currentStore, setCurrentStore] = useState();
+  const [currentStore, setCurrentStore] = useState({
+    id: "",
+    icon: "",
+    name: "",
+    slug: "",
+  });
 
   const {
     data: stores,

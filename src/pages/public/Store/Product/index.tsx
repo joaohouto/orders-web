@@ -37,7 +37,11 @@ export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
 
-  const [selectedVariation, setSelectedVariation] = useState();
+  const [selectedVariation, setSelectedVariation] = useState({
+    id: "",
+    name: "",
+    price: "",
+  });
   const [note, setNote] = useState("");
 
   const { storeSlug, productSlug } = useParams();
@@ -162,7 +166,7 @@ export function ProductPage() {
             </div>
 
             <div className="flex space-x-2 overflow-auto pb-2">
-              {product.images?.map((image, index) => (
+              {product.images?.map((image: string, index: number) => (
                 <button
                   key={index}
                   className={`relative size-18 flex-shrink-0 overflow-hidden rounded-md border-2 ${
@@ -189,7 +193,7 @@ export function ProductPage() {
             </h1>
 
             <div className="text-3xl font-bold">
-              {moneyFormatter.format(selectedVariation?.price)}
+              {moneyFormatter.format(+selectedVariation?.price)}
             </div>
 
             <p className="text-muted-foreground">{product.description}</p>

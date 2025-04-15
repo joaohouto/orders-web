@@ -28,7 +28,10 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const rowItem = row.original;
+  const rowItem = row.original as {
+    id: string;
+    slug: string;
+  };
 
   const [loadingDelete, setLoadingDelete] = useState(false);
   const { confirm, dialog } = useConfirm();

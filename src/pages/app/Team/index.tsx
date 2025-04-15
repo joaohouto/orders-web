@@ -103,7 +103,7 @@ export function TeamPage() {
       toast.success(`Colaborador adicionado!`);
     } catch (err) {
       console.log(err);
-      toast.error(err.response.data.msg);
+      toast.error("Erro");
     } finally {
       setLoadingAction(false);
     }
@@ -118,7 +118,7 @@ export function TeamPage() {
       toast.success("Permissão alterada");
     } catch (err) {
       console.log(err);
-      toast.error(err.response.data.msg);
+      toast.error("Erro");
     }
   }
 
@@ -239,7 +239,7 @@ export function TeamPage() {
                   </SelectContent>
                 </Select>
 
-                {collaborator.userId !== user.id && (
+                {collaborator.userId !== user?.id && (
                   <Button
                     size="icon"
                     variant="ghost"

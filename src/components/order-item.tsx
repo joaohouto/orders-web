@@ -17,15 +17,18 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router";
 import api from "@/services/api";
-import { MercadoPagoIcon } from "./mercadopago-icon";
 import { PixIcon } from "./pix-icon";
 
 type ProductItem = {
-  imageUrl: string;
-  quantity: number;
-  name: string;
+  product: {
+    images: string[];
+  };
+  productName: string;
+  variationName: string;
   variation: string;
-  price: number;
+  quantity: number;
+  unitPrice: number;
+  note?: string;
 };
 
 const orderStatuses = {

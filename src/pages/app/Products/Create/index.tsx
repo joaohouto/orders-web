@@ -74,7 +74,7 @@ export function CreateProductPage() {
   const variations = useFieldArray({
     control: form.control,
     name: "variations",
-  });
+  } as never);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoadingAction(true);
@@ -105,7 +105,7 @@ export function CreateProductPage() {
   const images = useFieldArray({
     control: form.control,
     name: "images",
-  });
+  } as never);
 
   async function handleImageUpload(files: File[]) {
     try {
