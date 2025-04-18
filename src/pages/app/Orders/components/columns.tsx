@@ -7,8 +7,31 @@ import { DataTableRowActions } from "./data-table-row-actions";
 
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-export const columns: ColumnDef<any>[] = [
+type Order = {
+  id: string;
+  storeId: string;
+  userId: string;
+  user: {
+    name: string;
+  };
+  status: string;
+  totalPrice: string;
+  createdAt: Date;
+  updatedAr: Date;
+};
+
+const orderStatuses = {
+  PENDING: "PENDENTE",
+  CONFIRMED: "CONFIRMADO",
+  IN_PRODUCTION: "EM PRODUÇÃO",
+  READY: "PRONTO",
+  DELIVERED: "ENTREGUE",
+  CANCELED: "CANCELADO",
+};
+
+export const columns: ColumnDef<Order>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -55,17 +78,19 @@ export const columns: ColumnDef<any>[] = [
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => {
-      return <span>{row.getValue("status")}</span>;
+      return (
+        <Badge variant="outline">{orderStatuses[row.getValue("status")]}</Badge>
+      );
     },
   },
 
   {
-    accessorKey: "buyerName",
+    accessorKey: "name",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Comprador" />
     ),
     cell: ({ row }) => {
-      return <span>{row.getValue("buyerName")}</span>;
+      return <span>{row.getValue("user")}</span>;
     },
   },
 
@@ -76,7 +101,7 @@ export const columns: ColumnDef<any>[] = [
     ),
     cell: ({ row }) => (
       <div className="">
-        {dayjs(row.getValue("createdAt")).format("DD MMM YYYY")}
+        {dayjs(row.getValue("createdAt")).format("DD-MM-YYYY")}
       </div>
     ),
     enableSorting: true,
@@ -84,14 +109,14 @@ export const columns: ColumnDef<any>[] = [
   },
 
   {
-    accessorKey: "total",
+    accessorKey: "totalPrice",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Total" />
     ),
     cell: ({ row }) => {
       return (
         <span className="max-w-[100px] truncate font-medium">
-          {moneyFormatter.format(row.getValue("total"))}
+          {moneyFormatter.format(+row.getValue("totalPrice"))}
         </span>
       );
     },

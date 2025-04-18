@@ -8,15 +8,62 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CirclePlusIcon } from "lucide-react";
+import { info } from "@/config/app";
+import api from "@/services/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CirclePlusIcon, Loader2, PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const formSchema = z.object({
+  name: z.string({
+    message: "Insira um nome",
+  }),
+  slug: z.string({
+    message: "Defina um URL para página",
+  }),
+});
 
 export function CreateStoreButton({
   onCreateStore,
 }: {
-  onCreateStore: () => any;
+  onCreateStore: (storeSlug: string) => any;
 }) {
+  const [loadingAction, setLoadingAction] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingAction(true);
+
+    try {
+      const response = await api.post(`/stores/`, values);
+
+      toast.success("Loja criada!");
+
+      onCreateStore(response.data.slug);
+    } catch (err) {
+      console.log(err);
+      toast.error("Erro ao criar página");
+    } finally {
+      setLoadingAction(false);
+    }
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -26,27 +73,64 @@ export function CreateStoreButton({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Criar nova loja</DialogTitle>
-          <DialogDescription>Venda seus produtos com ela!</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Nome
-            </Label>
-            <Input id="name" className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="username" className="text-right">
-              URL
-            </Label>
-            <Input id="username" className="col-span-3" />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit">Criar nova loja</Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <DialogHeader>
+              <DialogTitle>Criar nova loja</DialogTitle>
+              <DialogDescription>
+                Venda seus produtos com ela!
+              </DialogDescription>
+            </DialogHeader>
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endereço</FormLabel>
+                  <div className="flex gap-2">
+                    <div className="text-muted-foreground border-input flex h-9 w-[288px] min-w-0 rounded-md border bg-muted px-3 py-2 text-base shadow-xs md:text-sm">
+                      <span>{info.appUrl}</span>
+                    </div>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </div>
+
+                  <FormDescription>
+                    URL por onde sua página é acessada
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button type="submit" disabled={loadingAction}>
+                {loadingAction ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <PlusCircle />
+                )}
+                Criar nova loja
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

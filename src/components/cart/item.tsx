@@ -12,7 +12,7 @@ export const CartItem = ({ item }: Props) => {
       <div className="w-16 overflow-hidden">
         <img
           src={item.product.images[0] || "/placeholder.svg"}
-          className="w-16 h-16 rounded-md object-cover border"
+          className="w-16 h-16 rounded-md object-contain bg-muted border"
         />
       </div>
       <div className="flex-1">

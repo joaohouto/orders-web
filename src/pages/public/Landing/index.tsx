@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { info } from "@/config/app";
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircleIcon, GalleryVerticalEnd } from "lucide-react";
+import { AlertCircleIcon, GalleryVerticalEnd, Loader2 } from "lucide-react";
 import { Link } from "react-router";
 
 export function LandingPage() {
@@ -32,7 +32,7 @@ export function LandingPage() {
                 className="flex bg-background items-center p-3 rounded-lg border hover:border-primary transition-colors"
               >
                 <img
-                  src={store.icon}
+                  src={store.icon || "/placeholder.svg"}
                   alt={store.name}
                   className="object-cover w-12 h-12 rounded-md overflow-hidden mr-3 bg-muted border"
                 />
@@ -41,10 +41,8 @@ export function LandingPage() {
             ))}
 
             {isLoading && (
-              <div className="space-y-5">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
+              <div className="flex items-center justify-center">
+                <Loader2 className="animate-spin" />
               </div>
             )}
 

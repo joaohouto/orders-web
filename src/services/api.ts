@@ -3,8 +3,8 @@ import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 
-export const API_URL = "http://localhost:3000";
-//export const API_URL = "https;
+//export const API_URL = "http://localhost:3000";
+export const API_URL = "https://orders-api.fly.dev";
 
 const api = axios.create({
   baseURL: API_URL,

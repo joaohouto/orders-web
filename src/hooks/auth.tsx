@@ -14,6 +14,7 @@ type User = {
   email: string;
   avatar: string;
   phone: string;
+  document: string;
 };
 
 type AuthContextData = {
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user: User | null;
   }>(() => {
     const token = localStorage.getItem("@Orders:Token");
-    const user = localStorage.getItem("@Orders:User");  
+    const user = localStorage.getItem("@Orders:User");
 
     if (token && user) {
       api.defaults.headers["authorization"] = `Bearer ${token}`;

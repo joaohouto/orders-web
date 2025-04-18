@@ -7,6 +7,7 @@ import {
   Bird,
   CameraIcon,
   ClipboardListIcon,
+  CogIcon,
   DatabaseIcon,
   FileCodeIcon,
   FileIcon,
@@ -52,16 +53,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     navMain: [
       {
-        title: "Página",
-        url: `/app/${storeSlug}`,
-        icon: LayoutDashboardIcon,
-      },
-      {
-        title: "Colaboradores",
-        url: `/app/${storeSlug}/team`,
-        icon: UsersIcon,
-      },
-      {
         title: "Produtos",
         url: `/app/${storeSlug}/products`,
         icon: Package,
@@ -70,6 +61,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Pedidos",
         url: `/app/${storeSlug}/orders`,
         icon: NotebookText,
+      },
+      {
+        title: "Colaboradores",
+        url: `/app/${storeSlug}/team`,
+        icon: UsersIcon,
+      },
+      {
+        title: "Configurações",
+        url: `/app/${storeSlug}/config`,
+        icon: CogIcon,
       },
     ],
     navSecondary: [
@@ -101,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

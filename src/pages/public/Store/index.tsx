@@ -62,9 +62,9 @@ export function StorePage() {
             />
           )}
 
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
             <img
-              src={store.icon}
+              src={store.icon || "/placeholder.svg"}
               className="size-[100px] bg-muted rounded-xl border object-cover"
             />
             <div className="space-y-2">

@@ -284,7 +284,7 @@ export function EditProductPage() {
                 Adicione variações para seu produto com seus respectivos preços.
               </FormDescription>
 
-              <div className="overflow-y-auto max-h-[600px] space-y-2">
+              <div className="overflow-y-auto max-h-[400px] space-y-2">
                 {variations.fields.map((field, index) => (
                   <Card key={field.id} className="border border-muted">
                     <CardContent className="pt-2">

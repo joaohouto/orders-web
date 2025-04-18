@@ -32,6 +32,7 @@ import {
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
@@ -57,8 +58,6 @@ export function ProductPage() {
 
   async function getProduct() {
     const res = await api.get(`/stores/${storeSlug}/products/${productSlug}`);
-
-    setSelectedVariation(res.data.variations[0]);
     return res.data;
   }
 
@@ -78,7 +77,11 @@ export function ProductPage() {
   const { upsertCartItem } = useCartStore((state) => state);
 
   const handleAddButton = () => {
-    if (!selectedVariation) return;
+    if (selectedVariation.id === "") {
+      alert("Escolha uma variação.");
+
+      return;
+    }
 
     upsertCartItem(
       {
@@ -144,13 +147,13 @@ export function ProductPage() {
                 </Button>
               )}
 
-              <Link to={product.images[currentImage]}>
+              <a href={product.images[currentImage]} target="_blank">
                 <img
                   src={product.images[currentImage] || "/placeholder.svg"}
                   alt={product.name}
-                  className="object-cover w-full object-center bg-muted"
+                  className="object-contain w-full h-full bg-muted"
                 />
-              </Link>
+              </a>
 
               {product.images?.length > 1 && (
                 <Button
@@ -193,10 +196,14 @@ export function ProductPage() {
             </h1>
 
             <div className="text-3xl font-bold">
-              {moneyFormatter.format(+selectedVariation?.price)}
+              {moneyFormatter.format(
+                +selectedVariation?.price || +product.variations[0].price
+              )}
             </div>
 
-            <p className="text-muted-foreground">{product.description}</p>
+            <p className="prose prose-neutral dark:prose-invert">
+              <ReactMarkdown>{product.description}</ReactMarkdown>
+            </p>
 
             <div>
               <h3 className="text-sm font-medium">Variações</h3>

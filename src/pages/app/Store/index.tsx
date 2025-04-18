@@ -116,7 +116,7 @@ export function StorePage() {
 
   return (
     <>
-      <AppHeader routes={[{ path: "", title: "Painel" }]} />
+      <AppHeader routes={[{ path: "", title: "Configurações" }]} />
 
       <div className="w-full md:max-w-[600px] mx-auto p-8">
         <Form {...form}>

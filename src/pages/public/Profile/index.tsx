@@ -27,6 +27,8 @@ import api from "@/services/api";
 import { toast } from "sonner";
 import { useState } from "react";
 import { PhoneInput } from "@/components/phone-input";
+import { isValidCPF } from "@/lib/utils";
+import { CPFInput } from "@/components/cpf-input";
 
 const formSchema = z.object({
   name: z.string({
@@ -42,12 +44,16 @@ const formSchema = z.object({
     .string()
     .min(14, "Número incompleto") // ex: (99) 99999-9999 → 14 chars
     .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido"),
+
+  document: z.string().refine(isValidCPF, {
+    message: "CPF inválido",
+  }),
 });
 
 export function ProfilePage() {
   const navigate = useNavigate();
 
-  const { user, updateUser, signOut } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
@@ -56,7 +62,8 @@ export function ProfilePage() {
     defaultValues: {
       name: user?.name,
       email: user?.email,
-      phone: user?.phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
+      phone: user?.phone?.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
+      document: user?.document,
     },
   });
 
@@ -66,7 +73,8 @@ export function ProfilePage() {
     try {
       const response = await api.patch("/users/profile", {
         name: values.name,
-        phone: values.phone.replace(/\D/g, ""),
+        phone: values.phone?.replace(/\D/g, ""),
+        document: values.document,
       });
 
       updateUser(response.data);
@@ -144,6 +152,21 @@ export function ProfilePage() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Seu CPF</FormLabel>
+                      <FormControl>
+                        <CPFInput {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <Button type="submit" disabled={loadingSubmit}>
                   {loadingSubmit ? (
                     <Loader2 className="animate-spin" />

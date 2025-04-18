@@ -24,13 +24,14 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router";
 import { CartItem } from "@/components/cart/item";
-import { moneyFormatter } from "@/lib/utils";
+import { isValidCPF, moneyFormatter } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { useState } from "react";
 import { useAuth } from "@/hooks/auth";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { Cart } from "@/types/cart";
+import { CPFInput } from "@/components/cpf-input";
 
 const formSchema = z.object({
   name: z.string({
@@ -44,8 +45,12 @@ const formSchema = z.object({
 
   phone: z
     .string()
-    .min(14, "Número incompleto") // ex: (99) 99999-9999 → 14 chars
+    .min(14, "Número incompleto")
     .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido"),
+
+  document: z.string().refine(isValidCPF, {
+    message: "CPF inválido",
+  }),
 });
 
 export function CheckoutPage() {
@@ -125,7 +130,9 @@ export function CheckoutPage() {
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Revise o seu pedido</CardTitle>
-              <CardDescription></CardDescription>
+              <CardDescription>
+                Verifique se todos os items estão corretos.
+              </CardDescription>
             </CardHeader>
 
             <CardContent>
@@ -206,6 +213,20 @@ export function CheckoutPage() {
                       <FormLabel>Telefone</FormLabel>
                       <FormControl>
                         <PhoneInput {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Seu CPF</FormLabel>
+                      <FormControl>
+                        <CPFInput {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

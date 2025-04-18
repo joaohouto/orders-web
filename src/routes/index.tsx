@@ -11,7 +11,8 @@ import { ProductPage } from "@/pages/public/Store/Product";
 
 import { AppLayout } from "../pages/app/layout";
 import { AppPage } from "@/pages/app";
-import { StorePage as AppStorePage } from "@/pages/app/Store";
+import { DashboardPage } from "@/pages/app/Dashboard";
+import { StorePage as ConfigStorePage } from "@/pages/app/Store";
 
 import { ProductsPage } from "@/pages/app/Products";
 import { CreateProductPage } from "@/pages/app/Products/Create";
@@ -40,7 +41,7 @@ export function Routes() {
           <Route path="/app" element={<AppPage />} />
 
           <Route path="/app/:storeSlug" element={<AppLayout />}>
-            <Route index element={<AppStorePage />} />
+            <Route index element={<DashboardPage />} />
 
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/create" element={<CreateProductPage />} />
@@ -50,6 +51,7 @@ export function Routes() {
             />
 
             <Route path="team" element={<TeamPage />} />
+            <Route path="config" element={<ConfigStorePage />} />
 
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/v/:orderId" element={<ViewOrderPage />} />

@@ -1,13 +1,14 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CreateStoreButton } from "./components/create-store-dialog";
 import { info } from "@/config/app";
 
 export function AppPage() {
+  const navigate = useNavigate();
+
   const {
     data: stores,
     isLoading,
@@ -36,7 +37,7 @@ export function AppPage() {
               className="flex bg-background items-center p-3 rounded-lg border hover:border-primary transition-colors"
             >
               <img
-                src={store.icon}
+                src={store.icon || "./placeholder.svg"}
                 alt={store.name}
                 className="object-cover w-12 h-12 rounded-md overflow-hidden mr-3 bg-muted border"
               />
@@ -45,10 +46,8 @@ export function AppPage() {
           ))}
 
           {isLoading && (
-            <div className="space-y-5">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+            <div className="flex items-center justify-center">
+              <Loader2 className="animate-spin" />
             </div>
           )}
 
@@ -66,7 +65,11 @@ export function AppPage() {
             </div>
           )}
 
-          <CreateStoreButton onCreateStore={() => alert("opa")} />
+          <CreateStoreButton
+            onCreateStore={(createdStoreSlug: string) =>
+              navigate(`/app/${createdStoreSlug}`)
+            }
+          />
         </div>
       </div>
     </div>

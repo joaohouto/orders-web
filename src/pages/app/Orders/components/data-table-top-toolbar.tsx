@@ -29,11 +29,9 @@ export function DataTableToolbar<TData>({
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar por comprador"
-            value={
-              (table.getColumn("buyerName")?.getFilterValue() as string) ?? ""
-            }
+            value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("buyerName")?.setFilterValue(event.target.value)
+              table.getColumn("user")?.setFilterValue(event.target.value)
             }
             className="w-[150px] lg:w-[250px] pl-8"
           />

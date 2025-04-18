@@ -2,31 +2,36 @@ import { AppHeader } from "@/components/app-header";
 
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/services/api";
+import { LoadingPage } from "@/components/page-loading";
+import { ErrorPage } from "@/components/page-error";
+import { useParams } from "react-router";
 
 export function OrdersPage() {
-  const orders = [
-    {
-      id: "acde070d-8c4c-4f0d-9d8a-162843c10333",
-      status: "NOT_PAYED", // NOT_PAYED, PAYED, PREPARING, DELIVERED, USER_CANCELLED
-      total: 120,
+  const { storeSlug } = useParams();
 
-      buyerName: "João Henrique Martins Couto",
-      buyerPhone: "(67) 9 9237-8640",
+  const {
+    data: orders,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["orders"],
+    queryFn: fetchOrders,
+  });
 
-      items: [
-        {
-          name: "Camiseta",
-          price: 120,
-          quantity: 1,
-          selectedVariation: {
-            name: "Tamanho G",
-            price: 120,
-          },
-          buyerComments: "Adicionar número de costas 10",
-        },
-      ],
-    },
-  ];
+  async function fetchOrders() {
+    const response = await api.get(`/stores/${storeSlug}/orders`);
+    return response.data;
+  }
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (isError) {
+    return <ErrorPage />;
+  }
 
   return (
     <>
