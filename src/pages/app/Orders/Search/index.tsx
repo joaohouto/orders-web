@@ -37,8 +37,10 @@ export function SearchOrderPage() {
               width={500}
               height={500}
               onUpdate={(err, result) => {
-                if (result && isCuid(result.text)) {
-                  navigate(`/app/${storeSlug}/orders/v/${result.text}`);
+                if (result && isCuid((result as any).text)) {
+                  navigate(
+                    `/app/${storeSlug}/orders/v/${(result as any).text}`
+                  );
                 }
               }}
             />
