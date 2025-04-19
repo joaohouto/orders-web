@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import api from "@/services/api";
 import { PixIcon } from "./pix-icon";
+import { OrderStatusBadge } from "./order-status-badge";
 
 type ProductItem = {
   product: {
@@ -55,6 +56,7 @@ type OrderItemProps = {
 export function OrderItem({
   orderId,
   createdAt,
+  updatedAt,
   status,
   products,
   total,
@@ -78,38 +80,20 @@ export function OrderItem({
     }
   }
 
-  function getStatusBadgeVariant(status: OrderStatus) {
-    switch (status) {
-      case "CANCELED":
-        return "destructive";
-      case "CONFIRMED":
-        return "success";
-      default:
-        return "default";
-    }
-  }
-
   return (
     <>
       <Card className="py-0">
-        <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
+        <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto] gap-2">
           <div className="flex flex-col">
-            <CardTitle>Pedido {orderId}</CardTitle>
-
+            <CardTitle>Pedido criado em</CardTitle>
             <CardDescription>
-              Criado em{" "}
               {dayjs(createdAt)
                 .locale("pt-BR")
                 .format("DD [de] MMMM [de] YYYY [às] HH:mm")}
             </CardDescription>
           </div>
 
-          <Badge
-            variant={getStatusBadgeVariant(status)}
-            className="font-medium"
-          >
-            {orderStatuses[status]}
-          </Badge>
+          <OrderStatusBadge status={status} />
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4">
@@ -144,10 +128,10 @@ export function OrderItem({
           </div>
         </CardContent>
 
-        <CardFooter className="border-t rounded-b-xl pb-6 pt-6 gap-4 flex flex-col md:flex-row">
+        <CardFooter className="border-t rounded-b-xl pb-6 pt-6 gap-4 flex flex-wrap">
           {status === "PENDING" && (
             <Button type="button" asChild>
-              <Link to={`/orders/${orderId}/payment`}>
+              <Link to={`/orders/${orderId}/pix`}>
                 <PixIcon />
                 Pagar com PIX
               </Link>
@@ -169,7 +153,7 @@ export function OrderItem({
             </Button>
           )}
 
-          {["PENDING", "CONFIRMED"].includes(status) && (
+          {["PENDING"].includes(status) && (
             <Button
               type="button"
               variant="outline"
@@ -179,6 +163,10 @@ export function OrderItem({
               Cancelar pedido
             </Button>
           )}
+
+          <Button type="button" variant="outline" className="w-full" asChild>
+            <Link to={`/orders/${orderId}`}>Mais detalhes</Link>
+          </Button>
         </CardFooter>
       </Card>
 

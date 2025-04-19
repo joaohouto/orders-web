@@ -38,6 +38,9 @@ const formSchema = z.object({
   }),
   icon: z.string().url().optional(),
   banner: z.string().url().optional(),
+  pix: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
 });
 
 export function StorePage() {
@@ -67,6 +70,9 @@ export function StorePage() {
         instagram: store.instagram,
         icon: store.icon,
         banner: store.banner,
+        pix: store.pix,
+        city: store.city,
+        postalCode: store.postalCode,
       });
     }
   }, [store]);
@@ -172,6 +178,54 @@ export function StorePage() {
                       <Input {...field} />
                     </FormControl>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pix"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Chave PIX</FormLabel>
+
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription></FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cidade</FormLabel>
+
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription></FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="postalCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Código Postal</FormLabel>
+
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

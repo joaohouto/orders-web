@@ -48,3 +48,8 @@ export function isValidCPF(cpf: string): boolean {
   if (secondCheck === 10 || secondCheck === 11) secondCheck = 0;
   return secondCheck === parseInt(cpf.charAt(10));
 }
+
+export function formatCPF(cpf: string | null | undefined) {
+  if (!cpf) return;
+  return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+}

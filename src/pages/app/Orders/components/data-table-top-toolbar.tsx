@@ -1,8 +1,10 @@
 import { Table } from "@tanstack/react-table";
 import {
+  CameraIcon,
   CirclePlusIcon,
   CircleXIcon,
   DownloadIcon,
+  Loader2,
   SearchIcon,
 } from "lucide-react";
 
@@ -10,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "./data-table-view-options";
 import { Link, useParams } from "react-router";
+import { toast } from "sonner";
+import api from "@/services/api";
+import { useState } from "react";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -18,9 +23,35 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const [loadingExport, setLoadingExport] = useState(false);
+
   const isFiltered = table.getState().columnFilters.length > 0;
 
   const { storeSlug } = useParams();
+
+  async function exportCSV() {
+    setLoadingExport(true);
+    try {
+      const res = await api.get(`/stores/${storeSlug}/orders/export`, {
+        responseType: "blob", // Isso aqui é essencial
+      });
+
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `pedidos-${storeSlug}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Dados exportados!");
+    } catch (err) {
+      console.log(err);
+      toast.error("Erro ao exportar");
+    } finally {
+      setLoadingExport(false);
+    }
+  }
 
   return (
     <div className="flex items-center justify-between gap-3">
@@ -29,9 +60,11 @@ export function DataTableToolbar<TData>({
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar por comprador"
-            value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
+            value={
+              (table.getColumn("buyerName")?.getFilterValue() as string) ?? ""
+            }
             onChange={(event) =>
-              table.getColumn("user")?.setFilterValue(event.target.value)
+              table.getColumn("buyerName")?.setFilterValue(event.target.value)
             }
             className="w-[150px] lg:w-[250px] pl-8"
           />
@@ -49,17 +82,19 @@ export function DataTableToolbar<TData>({
         )}
       </div>
 
-      <DataTableViewOptions table={table} />
-
-      <Button variant="outline">
-        <DownloadIcon />
+      <Button variant="outline" onClick={exportCSV} disabled={loadingExport}>
+        {loadingExport ? (
+          <Loader2 className="animate-spin" />
+        ) : (
+          <DownloadIcon />
+        )}
         Baixar .csv
       </Button>
 
-      <Button asChild>
-        <Link to={`/app/${storeSlug}/orders/create`}>
-          <CirclePlusIcon />
-          Novo
+      <Button variant="outline" asChild>
+        <Link to={`/app/${storeSlug}/orders/find`}>
+          <CameraIcon />
+          Encontrar pedido
         </Link>
       </Button>
     </div>

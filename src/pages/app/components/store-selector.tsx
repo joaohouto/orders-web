@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, CircleX } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { Link, useParams } from "react-router";
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StoreSelector({
   onChangeCurrentStore,
@@ -49,11 +50,24 @@ export function StoreSelector({
   }, [stores, storeSlug]);
 
   if (isLoading) {
-    return <span>...</span>;
+    return <Skeleton className="h-[50px] w-full" />;
   }
 
   if (isError) {
-    return <span>Erro</span>;
+    return (
+      <div className="flex items-center gap-3 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        <div className="size-8 bg-muted text-muted-foreground rounded-md flex items-center justify-center">
+          <CircleX className="size-4" />
+        </div>
+
+        <div className="flex flex-col text-left">
+          <span className="font-medium">Erro</span>
+          <span className="text-xs text-muted-foreground">
+            Falha de carregamento
+          </span>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -22,8 +22,10 @@ import { OrdersPage } from "@/pages/app/Orders";
 import { ViewOrderPage } from "@/pages/app/Orders/View";
 import { TeamPage } from "@/pages/app/Team";
 import { CheckoutPage } from "../pages/public/Checkout";
-import { PaymentPage } from "../pages/public/Payment";
+import { PixPaymentPage } from "../pages/public/PixPayment";
 import { UserOrdersPage } from "@/pages/public/UserOrders";
+import { SearchOrderPage } from "@/pages/app/Orders/Search";
+import { ViewUserOrderPage } from "@/pages/public/UserOrders/View";
 
 export function Routes() {
   return (
@@ -36,7 +38,8 @@ export function Routes() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/orders" element={<UserOrdersPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/orders/:orderId/payment" element={<PaymentPage />} />
+          <Route path="/orders/:orderId" element={<ViewUserOrderPage />} />
+          <Route path="/orders/:orderId/pix" element={<PixPaymentPage />} />
 
           <Route path="/app" element={<AppPage />} />
 
@@ -55,6 +58,7 @@ export function Routes() {
 
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/v/:orderId" element={<ViewOrderPage />} />
+            <Route path="orders/find" element={<SearchOrderPage />} />
           </Route>
         </Route>
 

@@ -8,19 +8,7 @@ import { DataTableRowActions } from "./data-table-row-actions";
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
-type Order = {
-  id: string;
-  storeId: string;
-  userId: string;
-  user: {
-    name: string;
-  };
-  status: string;
-  totalPrice: string;
-  createdAt: Date;
-  updatedAr: Date;
-};
+import { OrderStatusBadge } from "@/components/order-status-badge";
 
 const orderStatuses = {
   PENDING: "PENDENTE",
@@ -29,6 +17,21 @@ const orderStatuses = {
   READY: "PRONTO",
   DELIVERED: "ENTREGUE",
   CANCELED: "CANCELADO",
+};
+
+type OrderStatus = keyof typeof orderStatuses;
+
+type Order = {
+  id: string;
+  storeId: string;
+  userId: string;
+  user: {
+    name: string;
+  };
+  status: OrderStatus;
+  totalPrice: string;
+  createdAt: Date;
+  updatedAr: Date;
 };
 
 export const columns: ColumnDef<Order>[] = [
@@ -79,18 +82,18 @@ export const columns: ColumnDef<Order>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <Badge variant="outline">{orderStatuses[row.getValue("status")]}</Badge>
+        <OrderStatusBadge status={row.getValue("status") as OrderStatus} />
       );
     },
   },
 
   {
-    accessorKey: "name",
+    accessorKey: "buyerName",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Comprador" />
     ),
     cell: ({ row }) => {
-      return <span>{row.getValue("user")}</span>;
+      return <span>{row.getValue("buyerName")}</span>;
     },
   },
 
@@ -116,7 +119,7 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       return (
         <span className="max-w-[100px] truncate font-medium">
-          {moneyFormatter.format(+row.getValue("totalPrice"))}
+          {moneyFormatter.format(+(row.getValue("totalPrice") as string))}
         </span>
       );
     },

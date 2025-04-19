@@ -27,7 +27,7 @@ import api from "@/services/api";
 import { toast } from "sonner";
 import { useState } from "react";
 import { PhoneInput } from "@/components/phone-input";
-import { isValidCPF } from "@/lib/utils";
+import { formatCPF, isValidCPF } from "@/lib/utils";
 import { CPFInput } from "@/components/cpf-input";
 
 const formSchema = z.object({
@@ -42,7 +42,7 @@ const formSchema = z.object({
 
   phone: z
     .string()
-    .min(14, "Número incompleto") // ex: (99) 99999-9999 → 14 chars
+    .min(14, "Número incompleto")
     .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido"),
 
   document: z.string().refine(isValidCPF, {
@@ -63,7 +63,7 @@ export function ProfilePage() {
       name: user?.name,
       email: user?.email,
       phone: user?.phone?.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
-      document: user?.document,
+      document: formatCPF(user?.document),
     },
   });
 
@@ -74,7 +74,7 @@ export function ProfilePage() {
       const response = await api.patch("/users/profile", {
         name: values.name,
         phone: values.phone?.replace(/\D/g, ""),
-        document: values.document,
+        document: values.document?.replace(/\D/g, ""),
       });
 
       updateUser(response.data);

@@ -7,8 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, InfoIcon, Terminal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, Copy, InfoIcon } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "recharts";
 import { Link, useParams } from "react-router";
@@ -18,7 +18,7 @@ import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export function PaymentPage() {
+export function PixPaymentPage() {
   const [copied, setCopied] = useState(false);
 
   const { orderId } = useParams();
@@ -33,7 +33,7 @@ export function PaymentPage() {
   });
 
   async function getPayment() {
-    const res = await api.get(`/orders/${orderId}/payment`);
+    const res = await api.get(`/orders/${orderId}/payment/pix`);
     return res.data;
   }
 

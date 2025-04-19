@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, CircleX, Loader2 } from "lucide-react";
 import { Header } from "@/components/header";
 
 import { useNavigate } from "react-router";
@@ -7,6 +7,7 @@ import api from "@/services/api";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrderItem } from "@/components/order-item";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function UserOrdersPage() {
   const navigate = useNavigate();
@@ -51,7 +52,13 @@ export function UserOrdersPage() {
           </div>
         )}
 
-        {isError && <span>Erro ao carregar os seus pedidos</span>}
+        {isError && (
+          <Alert>
+            <CircleX className="h-4 w-4" />
+            <AlertTitle>Não foi possível carregar</AlertTitle>
+            <AlertDescription>Tente novamente mais tarde</AlertDescription>
+          </Alert>
+        )}
 
         {myOrders?.map((order: any) => (
           <OrderItem

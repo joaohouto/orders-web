@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router";
 import { CartItem } from "@/components/cart/item";
-import { isValidCPF, moneyFormatter } from "@/lib/utils";
+import { formatCPF, isValidCPF, moneyFormatter } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { useState } from "react";
 import { useAuth } from "@/hooks/auth";
@@ -72,6 +72,7 @@ export function CheckoutPage() {
       name: user?.name,
       email: user?.email,
       phone: user?.phone?.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3"),
+      document: formatCPF(user?.document),
     },
   });
 
@@ -82,6 +83,7 @@ export function CheckoutPage() {
       const response = await api.patch("/users/profile", {
         name: values.name,
         phone: values.phone?.replace(/\D/g, ""),
+        document: values.document?.replace(/\D/g, ""),
       });
 
       updateUser(response.data);

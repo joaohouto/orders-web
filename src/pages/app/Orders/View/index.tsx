@@ -1,6 +1,7 @@
 import { AppHeader } from "@/components/app-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { OrderStatusBadge } from "@/components/order-status-badge";
+import { ErrorPage } from "@/components/page-error";
+import { LoadingPage } from "@/components/page-loading";
 import {
   Card,
   CardContent,
@@ -10,11 +11,39 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { moneyFormatter } from "@/lib/utils";
+import api from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useParams } from "react-router";
+import QRCode from "react-qr-code";
+import OrderStatusHistory from "@/components/order-status-history";
+import { PaymentCard } from "@/components/payment-item";
 
 export function ViewOrderPage() {
   const { orderId } = useParams();
+
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: [`order-${orderId}`],
+    queryFn: fetchOrders,
+  });
+
+  async function fetchOrders() {
+    const response = await api.get(`/orders/${orderId}`);
+    return response.data;
+  }
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (isError) {
+    return <ErrorPage />;
+  }
 
   return (
     <>
@@ -25,68 +54,76 @@ export function ViewOrderPage() {
         ]}
       />
 
-      <div className="w-full md:max-w-[600px] mx-auto p-8">
+      <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-4">
         <Card className="py-0">
           <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
             <div className="flex flex-col">
-              <CardTitle>Pedido {orderId}</CardTitle>
+              <CardTitle>Pedido</CardTitle>
               <CardDescription>
                 Criado em{" "}
-                {dayjs()
+                {dayjs(order.createdAt)
                   .locale("pt-Br")
                   .format("DD [de] MMMM [de] YYYY [às] HH:mm")}
               </CardDescription>
             </div>
 
-            <Badge>Em preparação</Badge>
+            <OrderStatusBadge status={order.status} />
           </CardHeader>
 
           <CardContent className="flex flex-col gap-4">
             <h3 className="font-semibold">Detalhes do pedido</h3>
 
-            <div className="grid grid-cols-[56px_24px_1fr_100px] gap-2 text-muted-foreground">
-              <img
-                src=""
-                alt="."
-                className="size-[56px) aspect-square rounded-md bg-muted object-contain"
-              />
+            {order.items?.map((item: any) => (
+              <div
+                key={item.id}
+                className="grid grid-cols-[56px_32px_1fr_100px] gap-2 text-muted-foreground"
+              >
+                <img
+                  src={item.product.images[0] || "/placeholder.svg"}
+                  alt={item.productName}
+                  className="size-[56px) aspect-square rounded-md border bg-muted object-contain"
+                />
 
-              <span className="text-center">1x</span>
-              <span>
-                Camiseta Futebol Americano - Tamaho M - Número 10, Nome JOÃO
-              </span>
-              <span className="text-right">R$ 100,00</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-muted-foreground">
-              <h3>Subtotal</h3>
-              <span className="text-right">R$ 100,00</span>
-            </div>
+                <span className="text-center">{item.quantity}x</span>
+                <span>
+                  {item.productName} - {item.variationName} <br />
+                  <i>{item.note}</i>
+                </span>
+                <span className="text-right">
+                  {moneyFormatter.format(+item.unitPrice)}
+                </span>
+              </div>
+            ))}
 
             <div className="grid grid-cols-2 gap-4">
               <h3 className="text-muted-foreground">Total</h3>
-              <span className="text-right font-semibold">R$ 100,00</span>
+              <span className="text-right font-semibold">
+                {moneyFormatter.format(+order.totalPrice)}
+              </span>
             </div>
 
             <Separator />
 
-            <div className="grid grid-cols-2 gap-4">
-              <strong>Entrega</strong>
-              <span className="text-muted-foreground">
-                Avenida Manoel Murtinho, 1831 - Anastácio/MS - 79210-000
-              </span>
-            </div>
-
-            <h3 className="font-semibold">Informações de contato</h3>
+            <h3 className="font-semibold">Informações do comprador</h3>
 
             <div className="grid grid-cols-2 gap-2 ">
               <span className="text-muted-foreground">Nome</span>
-              <span className="text-right">João Herique Martins Couto</span>
+              <span className="text-right">{order.user.name}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 ">
               <span className="text-muted-foreground">Telefone</span>
-              <span className="text-right">(67) 9 9237-8640</span>
+              <span className="text-right">
+                {order.user.phone.replace(
+                  /^(\d{2})(\d{5})(\d{4})$/,
+                  "($1) $2-$3"
+                )}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 ">
+              <span className="text-muted-foreground">CPF</span>
+              <span className="text-right">{order.user.document}</span>
             </div>
           </CardContent>
 
@@ -98,6 +135,25 @@ export function ViewOrderPage() {
                 .format("DD [de] MMMM [de] YYYY [às] HH:mm")}
             </span>
           </CardFooter>
+        </Card>
+
+        <OrderStatusHistory statusUpdates={order.statusHistory} />
+
+        {order.payments?.map((payment: any) => (
+          <PaymentCard key={payment.id} payment={payment} />
+        ))}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Identificação</CardTitle>
+            <CardDescription>{orderId}</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <div className="bg-white p-8 rounded-md flex items-center justify-center">
+              <QRCode size={136} value={orderId || ""} />
+            </div>
+          </CardContent>
         </Card>
       </div>
     </>
