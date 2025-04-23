@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { moneyFormatter } from "@/lib/utils";
+import { formatCPF, moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
@@ -44,7 +44,7 @@ export function ViewUserOrderPage() {
   return (
     <>
       <Header />
-      <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-8">
+      <div className="w-full md:max-w-[600px] mx-auto py-8 px-4 flex flex-col gap-8">
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />
         </Button>
@@ -68,9 +68,8 @@ export function ViewUserOrderPage() {
             <Card className="py-0">
               <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
                 <div className="flex flex-col">
-                  <CardTitle>Pedido</CardTitle>
+                  <CardTitle>Pedido criado em </CardTitle>
                   <CardDescription>
-                    Criado em{" "}
                     {dayjs(order.createdAt)
                       .locale("pt-Br")
                       .format("DD [de] MMMM [de] YYYY [às] HH:mm")}
@@ -86,12 +85,12 @@ export function ViewUserOrderPage() {
                 {order.items?.map((item: any) => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[56px_32px_1fr_100px] gap-2 text-muted-foreground"
+                    className="grid grid-cols-[48px_auto_1fr_auto] items-center gap-2 text-sm text-muted-foreground"
                   >
                     <img
                       src={item.product.images[0] || "/placeholder.svg"}
                       alt={item.productName}
-                      className="size-[56px) aspect-square rounded-md border bg-muted object-contain"
+                      className="size-[48px) aspect-square rounded-md border bg-muted object-contain"
                     />
 
                     <span className="text-center">{item.quantity}x</span>
@@ -133,14 +132,16 @@ export function ViewUserOrderPage() {
 
                 <div className="grid grid-cols-2 gap-2 ">
                   <span className="text-muted-foreground">CPF</span>
-                  <span className="text-right">{order.user.document}</span>
+                  <span className="text-right">
+                    {formatCPF(order.user.document)}
+                  </span>
                 </div>
               </CardContent>
 
               <CardFooter className="border-t rounded-b-xl pb-6 pt-6">
                 <span className="text-sm text-muted-foreground">
                   Atualizado em{" "}
-                  {dayjs()
+                  {dayjs(order.updatedAt)
                     .locale("pt-Br")
                     .format("DD [de] MMMM [de] YYYY [às] HH:mm")}
                 </span>

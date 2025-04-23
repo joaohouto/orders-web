@@ -1,5 +1,5 @@
 import { AppHeader } from "@/components/app-header";
-import { OrderStatusBadge } from "@/components/order-status-badge";
+import { OrderStatus, OrderStatusBadge } from "@/components/order-status-badge";
 import { ErrorPage } from "@/components/page-error";
 import { LoadingPage } from "@/components/page-loading";
 import {
@@ -11,14 +11,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { moneyFormatter } from "@/lib/utils";
+import { formatCPF, moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useParams } from "react-router";
-import QRCode from "react-qr-code";
 import OrderStatusHistory from "@/components/order-status-history";
 import { PaymentCard } from "@/components/payment-item";
+
+import { OrderStatusSelect } from "@/components/order-status-select";
 
 export function ViewOrderPage() {
   const { orderId } = useParams();
@@ -55,6 +56,8 @@ export function ViewOrderPage() {
       />
 
       <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-4">
+        <OrderStatusSelect orderId={order.id} initialStatus={order.status} />
+
         <Card className="py-0">
           <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
             <div className="flex flex-col">
@@ -123,7 +126,9 @@ export function ViewOrderPage() {
 
             <div className="grid grid-cols-2 gap-2 ">
               <span className="text-muted-foreground">CPF</span>
-              <span className="text-right">{order.user.document}</span>
+              <span className="text-right">
+                {formatCPF(order.user.document)}
+              </span>
             </div>
           </CardContent>
 
@@ -142,19 +147,6 @@ export function ViewOrderPage() {
         {order.payments?.map((payment: any) => (
           <PaymentCard key={payment.id} payment={payment} />
         ))}
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Identificação</CardTitle>
-            <CardDescription>{orderId}</CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <div className="bg-white p-8 rounded-md flex items-center justify-center">
-              <QRCode size={136} value={orderId || ""} />
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </>
   );

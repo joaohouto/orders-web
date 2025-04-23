@@ -2,6 +2,19 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 
+import {
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -35,6 +48,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
+import { SortableImage } from "@/components/sortable-image";
 
 const formSchema = z.object({
   slug: z.string({
@@ -64,6 +78,7 @@ export function EditProductPage() {
 
   const { storeSlug, productSlug } = useParams();
   const navigate = useNavigate();
+  const sensors = useSensors(useSensor(PointerSensor));
 
   const {
     data: product,
@@ -340,7 +355,7 @@ export function EditProductPage() {
 
             <Label>Imagens</Label>
 
-            <div className="flex gap-4 flex-wrap">
+            {/*  <div className="flex gap-4 flex-wrap">
               {images.fields.map((field, index) => (
                 <div key={field.id}>
                   <div className="relative w-fit">
@@ -374,7 +389,50 @@ export function EditProductPage() {
                   />
                 </div>
               ))}
-            </div>
+            </div> */}
+
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event) => {
+                const { active, over } = event;
+
+                if (active.id !== over?.id) {
+                  const oldIndex = images.fields.findIndex(
+                    (f) => f.id === active.id
+                  );
+                  const newIndex = images.fields.findIndex(
+                    (f) => f.id === over?.id
+                  );
+
+                  const newValues = arrayMove(
+                    form.getValues("images"),
+                    oldIndex,
+                    newIndex
+                  );
+                  form.setValue("images", newValues);
+
+                  images.move(oldIndex, newIndex); // mantém sync com useFieldArray
+                }
+              }}
+            >
+              <SortableContext
+                items={images.fields.map((field) => field.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="flex flex-col gap-4">
+                  {images.fields.map((field, index) => (
+                    <SortableImage
+                      key={field.id}
+                      field={field}
+                      index={index}
+                      form={form}
+                      remove={images.remove}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
 
             {images.fields.length < 5 && (
               <FileUploader

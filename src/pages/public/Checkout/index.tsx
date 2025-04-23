@@ -12,7 +12,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Bird, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bird,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
 import { PhoneInput } from "@/components/phone-input";
 import {
   Card,
@@ -242,8 +248,9 @@ export function CheckoutPage() {
             {loadingSubmit ? (
               <Loader2 className="animate-spin" />
             ) : (
-              "Fechar pedido"
+              <CheckCircle />
             )}
+            Fechar pedido
           </Button>
         </div>
       </form>

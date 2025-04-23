@@ -102,20 +102,21 @@ export function OrderItem({
           {products.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-[56px_24px_1fr_100px] items-center gap-2 text-muted-foreground"
+              className="grid grid-cols-[48px_auto_1fr_auto] items-center gap-2 text-sm text-muted-foreground"
             >
               <img
                 src={item.product.images[0] || "/placeholder.svg"}
                 alt={item.productName}
-                className="size-[56px] aspect-square rounded-md border object-contain"
+                className="size-[48px) aspect-square rounded-md border bg-muted object-contain"
               />
 
               <span className="text-center">{item.quantity}x</span>
               <span>
-                {item.productName} ({item.variationName}) {item.note}
+                {item.productName} - {item.variationName} <br />
+                <i>{item.note}</i>
               </span>
               <span className="text-right">
-                {moneyFormatter.format(item.unitPrice * item.quantity)}
+                {moneyFormatter.format(+item.unitPrice)}
               </span>
             </div>
           ))}

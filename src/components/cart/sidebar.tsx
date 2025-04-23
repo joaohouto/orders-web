@@ -12,11 +12,13 @@ import { useCartStore } from "@/stores/cart-store";
 import { CartItem } from "./item";
 import { moneyFormatter } from "@/lib/utils";
 import { useNavigate } from "react-router";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const CartSidebar = () => {
   const navigate = useNavigate();
 
   const { cart } = useCartStore((state) => state);
+  const isMobile = useIsMobile();
 
   let subtotal = 0;
   for (const item of cart) {
@@ -31,9 +33,13 @@ export const CartSidebar = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button className="relative" variant="outline">
+        <Button
+          className="relative"
+          variant="outline"
+          size={isMobile ? "icon" : "default"}
+        >
           <ShoppingCartIcon className="mr-1" />
-          <p>
+          <p className="hidden md:flex gap-1 items-center">
             Carrinho <span className="text-xs">({items})</span>
           </p>
           {cart.length > 0 && (

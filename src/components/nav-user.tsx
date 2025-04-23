@@ -6,6 +6,7 @@ import {
   Menu,
   Moon,
   MoreVerticalIcon,
+  ShoppingBag,
   Sun,
   User2Icon,
   UserCircleIcon,
@@ -35,8 +36,8 @@ export function NavUserButton() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-          <Menu />
           Menu
+          <Menu />
         </Button>
       </DropdownMenuTrigger>
       {user ? (
@@ -65,7 +66,7 @@ export function NavUserButton() {
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
               <Link to="/orders">
-                <GalleryHorizontalEnd />
+                <ShoppingBag />
                 Seus pedidos
               </Link>
             </DropdownMenuItem>
@@ -75,13 +76,6 @@ export function NavUserButton() {
                 <UserCircleIcon />
                 Seu perfil
               </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild>
-              <a href="mailto:suporte@joaocouto.com" target="_blank">
-                <HelpCircle />
-                Precisa de ajuda?
-              </a>
             </DropdownMenuItem>
           </DropdownMenuGroup>
 

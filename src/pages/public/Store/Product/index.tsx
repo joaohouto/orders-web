@@ -114,7 +114,7 @@ export function ProductPage() {
     <div className="flex flex-col items-center justify-center">
       <Header />
 
-      <div className="w-full lg:w-[1000px] flex flex-col px-8 py-12 gap-4">
+      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-12 gap-4">
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>

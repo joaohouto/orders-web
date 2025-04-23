@@ -26,7 +26,7 @@ export function AppPage() {
   return (
     <div className="min-h-screen bg-muted flex justify-center items-center">
       <div className="w-full md:max-w-[400px] mx-auto my-auto flex flex-col gap-2 px-4 py-8">
-        <info.appIcon />
+        <info.appIcon className="text-muted-foreground" />
 
         <h2 className="text-xl font-semibold mb-4">Suas lojas</h2>
         <div className="space-y-4">

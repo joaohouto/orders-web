@@ -41,7 +41,7 @@ export function UserOrdersPage() {
   return (
     <>
       <Header />
-      <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-8">
+      <div className="w-full md:max-w-[600px] mx-auto py-8 px-4 flex flex-col gap-8">
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />
         </Button>
