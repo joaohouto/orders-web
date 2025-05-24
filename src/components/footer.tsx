@@ -81,7 +81,7 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
-        <div className="mt-8 pt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-6 text-center text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} vendeuu. Todos os direitos
           reservados.
         </div>
