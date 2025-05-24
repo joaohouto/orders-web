@@ -97,7 +97,8 @@ export function PixPaymentPage() {
             <InfoIcon className="h-4 w-4" />
             <AlertTitle>Atenção</AlertTitle>
             <AlertDescription className="text-balance">
-              Iremos confirmar o seu pagamento manualmente em até 1 dia útil
+              <b>Pague só uma vez.</b> Iremos confirmar o seu pagamento
+              manualmente em até 2 dias úteis
             </AlertDescription>
           </Alert>
 

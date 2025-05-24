@@ -33,6 +33,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
@@ -75,6 +76,7 @@ export function ProductPage() {
   };
 
   const { upsertCartItem } = useCartStore((state) => state);
+  const { confirm, dialog } = useConfirm();
 
   const handleAddButton = () => {
     if (selectedVariation.id === "") {
@@ -137,9 +139,8 @@ export function ProductPage() {
             <div className="relative aspect-square overflow-hidden rounded-lg">
               {product.images?.length > 1 && (
                 <Button
-                  variant="outline"
                   size="icon"
-                  className="absolute left-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background text-foreground"
+                  className="absolute left-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background hover:bg-muted text-foreground"
                   onClick={prevImage}
                 >
                   <ChevronLeft />
@@ -157,9 +158,8 @@ export function ProductPage() {
 
               {product.images?.length > 1 && (
                 <Button
-                  variant="outline"
                   size="icon"
-                  className="absolute right-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background text-foreground"
+                  className="absolute right-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background hover:bg-muted text-foreground"
                   onClick={nextImage}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function ProductPage() {
               {product.images?.map((image: string, index: number) => (
                 <button
                   key={index}
-                  className={`relative size-18 flex-shrink-0 overflow-hidden rounded-md border-2 ${
+                  className={`relative size-18 flex-shrink-0 overflow-hidden rounded-md border-2 bg-muted ${
                     currentImage === index
                       ? "border-primary"
                       : "border-transparent"
@@ -182,7 +182,7 @@ export function ProductPage() {
                   <img
                     src={image}
                     alt={product.name}
-                    className="object-cover"
+                    className="object-cover bg-muted"
                   />
                 </button>
               ))}

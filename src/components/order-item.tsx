@@ -139,21 +139,6 @@ export function OrderItem({
             </Button>
           )}
 
-          {status === "PENDING" && (
-            <Button
-              type="button"
-              onClick={redirectToCheckout}
-              disabled={loadingAction}
-            >
-              {loadingAction ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <CreditCardIcon />
-              )}
-              Mercado Pago
-            </Button>
-          )}
-
           {["PENDING"].includes(status) && (
             <Button
               type="button"

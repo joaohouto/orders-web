@@ -1,19 +1,19 @@
 import { info } from "@/config/app";
-import { Instagram, Twitter, Facebook, Bird } from "lucide-react";
+import { Bird } from "lucide-react";
 import { Link } from "react-router";
 
 export function SiteFooter() {
   return (
-    <footer className="w-full border-t bg-background">
+    <footer className="w-full border-t border-dashed bg-background">
       <div className="mx-auto container px-4 md:px-6 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <Link
               to="/"
-              className="flex items-center gap-2 text-xl font-bold text-primary"
+              className="flex items-center gap-2 text-xl font-bold text-muted-foreground"
             >
-              <Bird className="h-6 w-6" />
-              <span className="tracking-tighter">{info.appName}</span>
+              <Bird className="size-5" />
+              <span className="tracking-tighter text-md">{info.appName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               A plataforma de vendas universitárias que conecta estudantes às

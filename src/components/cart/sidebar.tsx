@@ -33,17 +33,13 @@ export const CartSidebar = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          className="relative"
-          variant="outline"
-          size={isMobile ? "icon" : "default"}
-        >
+        <Button className="relative" variant="outline">
           <ShoppingCartIcon className="mr-1" />
-          <p className="hidden md:flex gap-1 items-center">
+          <p className="flex gap-1 items-center">
             Carrinho <span className="text-xs">({items})</span>
           </p>
           {cart.length > 0 && (
-            <div className="absolute size-3 bg-red-600 rounded-full -right-1 -top-1" />
+            <div className="absolute size-3 bg-primary rounded-full -right-1 -top-1" />
           )}
         </Button>
       </SheetTrigger>
