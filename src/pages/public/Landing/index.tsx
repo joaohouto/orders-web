@@ -1,5 +1,5 @@
 import { FeaturedStores } from "./components/featured-stores";
-import { SiteFooter } from "./components/footer";
+import { SiteFooter } from "@/components/footer";
 
 export function LandingPage() {
   return (
