@@ -35,7 +35,10 @@ export function NavUserButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+        <Button
+          variant="outline"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
           Menu
           <Menu />
         </Button>
