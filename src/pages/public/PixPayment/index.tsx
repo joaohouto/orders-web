@@ -56,7 +56,7 @@ export function PixPaymentPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-muted">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Complete seu pagamento</CardTitle>

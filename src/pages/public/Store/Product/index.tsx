@@ -33,7 +33,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { useConfirm } from "@/hooks/use-confirm";
+import { alertDialog } from "@/components/alert-dialog";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
@@ -76,12 +76,10 @@ export function ProductPage() {
   };
 
   const { upsertCartItem } = useCartStore((state) => state);
-  const { confirm, dialog } = useConfirm();
 
   const handleAddButton = () => {
     if (selectedVariation.id === "") {
-      alert("Escolha uma variação.");
-
+      alertDialog("Escolha uma variação.");
       return;
     }
 
@@ -99,7 +97,7 @@ export function ProductPage() {
       quantity
     );
     toast.success("Feito", {
-      description: `${product.name} foi adicionado ao carrinho!`,
+      description: `${product.name} - ${selectedVariation.name} foi adicionado ao carrinho!`,
       duration: 2000,
     });
   };
@@ -116,7 +114,7 @@ export function ProductPage() {
     <div className="flex flex-col items-center justify-center">
       <Header />
 
-      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-12 gap-4">
+      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-8 gap-4">
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>

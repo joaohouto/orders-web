@@ -48,12 +48,12 @@ export function CancelOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-balance">
             Tem certeza que deseja cancelar esse pedido?
           </DialogTitle>
         </DialogHeader>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground text-center sm:text-left">
           Essa ação não poderá ser desfeita.
         </p>
 

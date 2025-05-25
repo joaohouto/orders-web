@@ -46,11 +46,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { storeSlug } = useParams();
 
   const data = {
-    user: {
-      name: "shadcn",
-      email: "m@example.com",
-      avatar: "/avatars/shadcn.jpg",
-    },
     navMain: [
       {
         title: "Produtos",
@@ -93,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Link to="/app">
                 <info.appIcon />
-                <span className="text-base font-semibold tracking-tighter">
+                <span className="text-base font-bold tracking-tighter">
                   {info.appName}
                 </span>
               </Link>

@@ -5,9 +5,9 @@ import { Link } from "react-router";
 export function SiteFooter() {
   return (
     <footer className="w-full border-t border-dashed bg-background">
-      <div className="mx-auto container px-4 md:px-6 py-8 md:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-3">
+      <div className="mx-auto max-w-screen-lg px-4 md:px-6 py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+          <div className="space-y-3 col-span-1 lg:col-span-2">
             <Link
               to="/"
               className="flex items-center gap-2 text-xl font-bold text-muted-foreground"
@@ -22,9 +22,10 @@ export function SiteFooter() {
           </div>
 
           <div />
+
           <div className="space-y-3">
             <h3 className="font-medium">Navegação</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               <li>
                 <Link
                   to="/"
@@ -53,10 +54,10 @@ export function SiteFooter() {
           </div>
           <div className="space-y-3">
             <h3 className="font-medium">Legal</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               <li>
                 <Link
-                  to="#"
+                  to="https://joaocouto.com/politica-de-privacidade"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Termos de Uso
@@ -64,7 +65,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <Link
-                  to="#"
+                  to="https://joaocouto.com/politica-de-privacidade"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Política de Privacidade

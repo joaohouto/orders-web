@@ -54,12 +54,12 @@ export function StorePage() {
     <div className="flex flex-col items-center justify-center">
       <Header />
 
-      <div className="w-full md:w-[720px] flex flex-col py-8 px-4 gap-4 pb-20">
+      <div className="w-full md:w-[720px] flex flex-col py-6 px-4 gap-4 pb-20">
         <section className="mb-8 space-y-4">
           {store.banner && (
             <img
               src={store.banner}
-              className="w-full h-[200px] bg-muted rounded-xl border object-cover"
+              className="w-full h-[100px] md:h-[200px] bg-muted rounded-xl border object-cover"
             />
           )}
 

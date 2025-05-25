@@ -23,15 +23,15 @@ export function FeaturedStores() {
     <section className="w-full py-12 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
-          <div className="flex items-center gap-2 text-xl font-bold text-primary">
+          <div className="flex items-center gap-2 text-xl font-bold text-muted-foreground">
             <Bird className="h-6 w-6" />
             <span className="tracking-tighter">{info.appName}</span>
           </div>
 
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl xl:text-5xl/none text-balance">
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl xl:text-5xl/none text-balance bg-[linear-gradient(to_right,#EE0979,#FF6A00)] bg-clip-text text-transparent">
             Compre e venda na sua universidade
           </h2>
-          <p className="max-w-[600px] text-muted-foreground md:text-xl text-balance">
+          <p className="max-w-[600px] text-muted-foreground md:text-xl">
             O vendeuu conecta estudantes universitários com as melhores lojas do
             campus. Encontre produtos, serviços e promoções exclusivas.
           </p>
