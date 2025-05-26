@@ -34,6 +34,7 @@ import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { alertDialog } from "@/components/alert-dialog";
+import { SiteFooter } from "@/components/footer";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
@@ -114,7 +115,7 @@ export function ProductPage() {
     <div className="flex flex-col items-center justify-center">
       <Header />
 
-      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-8 gap-4">
+      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-8 gap-4 mb-20">
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -283,6 +284,8 @@ export function ProductPage() {
           </div>
         </div>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }

@@ -9,10 +9,8 @@ export function Header() {
       <div className="w-full md:w-[1000px] mx-auto p-4 flex items-center justify-between">
         <h1 className="text-md font-bold tracking-tighter">
           <Link to="/" className="flex gap-2 items-center text-primary">
-            <info.appIcon className="text-[#EE0979]" />
-            <span className="bg-[linear-gradient(to_right,#EE0979,#FF6A00)] bg-clip-text text-transparent">
-              {info.appName}
-            </span>
+            <info.appIcon />
+            <span>{info.appName}</span>
           </Link>
         </h1>
 

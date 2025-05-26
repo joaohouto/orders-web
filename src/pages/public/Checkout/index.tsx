@@ -126,7 +126,7 @@ export function CheckoutPage() {
     <div className="bg-muted">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-8">
+          <div className="w-full md:max-w-[600px] mx-auto py-8 px-4 flex flex-col gap-8">
             <Button
               type="button"
               variant="outline"

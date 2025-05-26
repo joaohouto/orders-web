@@ -66,7 +66,7 @@ export function PixPaymentPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex justify-center p-4 bg-muted rounded-lg">
-            <img src={payment.qrcode} />
+            <img className="rounded-lg" src={payment.qrcode} />
           </div>
 
           <div className="space-y-2">

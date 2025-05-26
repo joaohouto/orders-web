@@ -12,7 +12,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Loader2, LogOut, SaveIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Loader2,
+  LogOut,
+  SaveIcon,
+} from "lucide-react";
 import { Header } from "@/components/header";
 import {
   Card,
@@ -29,6 +35,8 @@ import { useState } from "react";
 import { PhoneInput } from "@/components/phone-input";
 import { formatCPF, isValidCPF } from "@/lib/utils";
 import { CPFInput } from "@/components/cpf-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { GoogleIcon } from "@/components/google-icon";
 
 const formSchema = z.object({
   name: z.string({
@@ -88,13 +96,44 @@ export function ProfilePage() {
     }
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       <Header />
-      <div className="w-full md:max-w-[600px] mx-auto p-8 flex flex-col gap-8">
+      <div className="w-full md:max-w-[600px] mx-auto py-8 px-4 flex flex-col gap-8">
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />
         </Button>
+
+        <Card className="w-full">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-lg font-medium">
+              Conectado com Google
+            </CardTitle>
+            <GoogleIcon />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback>
+                    {user.name?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium leading-none">
+                    {user.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="border-b">
