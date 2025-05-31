@@ -2,19 +2,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 
-import {
-  DndContext,
-  closestCenter,
-  useSensor,
-  useSensors,
-  PointerSensor,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -48,7 +35,6 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
-import { SortableImage } from "@/components/sortable-image";
 
 const formSchema = z.object({
   slug: z.string({
@@ -71,6 +57,7 @@ const formSchema = z.object({
       price: z.coerce.number({ message: "Informe um preço" }),
     })
   ),
+  bulkPrice: z.coerce.number().optional(), //temp
 });
 
 export function EditProductPage() {
@@ -78,7 +65,6 @@ export function EditProductPage() {
 
   const { storeSlug, productSlug } = useParams();
   const navigate = useNavigate();
-  const sensors = useSensors(useSensor(PointerSensor));
 
   const {
     data: product,
@@ -111,6 +97,7 @@ export function EditProductPage() {
           name: v.name,
           price: Number(v.price),
         })),
+        bulkPrice: undefined, // Ensure bulkPrice is reset
       });
     }
   }, [product]);
@@ -120,11 +107,37 @@ export function EditProductPage() {
     name: "variations",
   } as never);
 
+  // Function to apply the bulk price to all variations
+  const handleApplyAllPrice = () => {
+    const priceToApply = form.getValues("bulkPrice"); // Get the number directly from the form state
+    if (
+      priceToApply !== undefined &&
+      !isNaN(priceToApply) &&
+      priceToApply >= 0
+    ) {
+      variations.fields.forEach((_, index) => {
+        form.setValue(`variations.${index}.price`, priceToApply, {
+          shouldDirty: true, // Mark form as dirty
+          shouldValidate: true, // Re-validate the field
+        });
+      });
+      toast.info("Preço aplicado a todas as variações.");
+    } else {
+      toast.error("Por favor, insira um preço válido e positivo para aplicar.");
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoadingAction(true);
 
     try {
-      await api.put(`/stores/${storeSlug}/products/${productSlug}`, values);
+      const valuesToSubmit = { ...values };
+      delete valuesToSubmit.bulkPrice;
+
+      await api.put(
+        `/stores/${storeSlug}/products/${productSlug}`,
+        valuesToSubmit
+      );
 
       toast.success(`Produto atualizado!`);
 
@@ -286,12 +299,34 @@ export function EditProductPage() {
                   onClick={() =>
                     variations.append({
                       name: "",
-                      price: form.getValues("variations")[0].price || 0,
+                      price: form.getValues("variations")[0]?.price || 0, // Use optional chaining for safety
                     })
                   }
                 >
                   <CirclePlus />
                   Adicionar variante
+                </Button>
+              </div>
+
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <MoneyInput
+                    form={form}
+                    label="Aplicar preço a todas as variações"
+                    name="bulkPrice"
+                    placeholder="R$"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleApplyAllPrice}
+                  disabled={
+                    form.watch("bulkPrice") === undefined ||
+                    isNaN(form.watch("bulkPrice")!) ||
+                    form.watch("bulkPrice")! < 0
+                  }
+                >
+                  Aplicar
                 </Button>
               </div>
 
@@ -355,33 +390,29 @@ export function EditProductPage() {
 
             <Label>Imagens</Label>
 
-            {/*  <div className="flex gap-4 flex-wrap">
+            <div className="flex flex-row flex-wrap gap-4">
               {images.fields.map((field, index) => (
-                <div key={field.id}>
-                  <div className="relative w-fit">
-                    <img
-                      src={form.watch(`images.${index}`)}
-                      className="size-[100px] border rounded-md object-contain"
-                    />
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => images.remove(index)}
-                      className="absolute right-0 top-0"
-                    >
-                      <CircleXIcon />
-                    </Button>
-                  </div>
-
+                <div key={field.id} className="relative w-fit">
+                  <img
+                    src={form.watch(`images.${index}`)}
+                    className="size-[100px] border rounded-md object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => images.remove(index)}
+                    className="absolute right-0 top-0"
+                  >
+                    <CircleXIcon />
+                  </Button>
                   <FormField
                     control={form.control}
                     name={`images.${index}`}
-                    render={({ field }) => (
+                    render={({ field: formField }) => (
                       <FormItem>
                         <FormControl>
-                          <Input className="hidden" {...field} />
+                          <Input className="hidden" {...formField} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -389,50 +420,7 @@ export function EditProductPage() {
                   />
                 </div>
               ))}
-            </div> */}
-
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={(event) => {
-                const { active, over } = event;
-
-                if (active.id !== over?.id) {
-                  const oldIndex = images.fields.findIndex(
-                    (f) => f.id === active.id
-                  );
-                  const newIndex = images.fields.findIndex(
-                    (f) => f.id === over?.id
-                  );
-
-                  const newValues = arrayMove(
-                    form.getValues("images"),
-                    oldIndex,
-                    newIndex
-                  );
-                  form.setValue("images", newValues);
-
-                  images.move(oldIndex, newIndex); // mantém sync com useFieldArray
-                }
-              }}
-            >
-              <SortableContext
-                items={images.fields.map((field) => field.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="flex flex-col gap-4">
-                  {images.fields.map((field, index) => (
-                    <SortableImage
-                      key={field.id}
-                      field={field}
-                      index={index}
-                      form={form}
-                      remove={images.remove}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+            </div>
 
             {images.fields.length < 5 && (
               <FileUploader

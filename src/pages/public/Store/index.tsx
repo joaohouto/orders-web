@@ -59,14 +59,14 @@ export function StorePage() {
           {store.banner && (
             <img
               src={store.banner}
-              className="w-full h-[100px] md:h-[200px] bg-muted rounded-xl border object-cover"
+              className="w-full h-[100px] md:h-[200px] rounded-xl border object-cover"
             />
           )}
 
           <div className="flex items-center gap-4">
             <img
               src={store.icon || "/placeholder.svg"}
-              className="size-[100px] bg-muted rounded-xl border object-cover"
+              className="size-[100px] rounded-xl border object-cover"
             />
             <div className="space-y-2">
               <h1 className="text-2xl font-semibold tracking-tight">
