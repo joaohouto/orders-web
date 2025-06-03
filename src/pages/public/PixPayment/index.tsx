@@ -17,6 +17,7 @@ import api from "@/services/api";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 export function PixPaymentPage() {
   const [copied, setCopied] = useState(false);
@@ -42,6 +43,7 @@ export function PixPaymentPage() {
       await navigator.clipboard.writeText(payment.pix);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast.info("Copiado!");
     } catch (err) {
       console.error("Failed to copy text: ", err);
     }
@@ -69,20 +71,22 @@ export function PixPaymentPage() {
             <img className="rounded-lg" src={payment.qrcode} />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label>Código de pagamento</Label>
-            <div className="flex space-x-2">
+
+            <div className="flex gap-2">
               <Input
                 id="payment-code"
                 value={payment.pix}
                 readOnly
-                className="font-mono"
+                className="font-mono text-sm"
               />
+
               <Button
-                variant="outline"
+                variant="default"
+                className="shrink-0"
                 size="icon"
                 onClick={copyToClipboard}
-                className="flex-shrink-0"
               >
                 {copied ? (
                   <Check className="h-4 w-4" />
@@ -95,10 +99,9 @@ export function PixPaymentPage() {
 
           <Alert>
             <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Atenção</AlertTitle>
+            <AlertTitle>Atenção, pague só uma vez.</AlertTitle>
             <AlertDescription className="text-balance">
-              <b>Pague só uma vez.</b> Iremos confirmar o seu pagamento
-              manualmente em até 2 dias úteis
+              Iremos confirmar o seu pagamento manualmente em até 1 dia útil.
             </AlertDescription>
           </Alert>
 
