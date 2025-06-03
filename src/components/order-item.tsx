@@ -129,7 +129,7 @@ export function OrderItem({
           </div>
         </CardContent>
 
-        <CardFooter className="border-t rounded-b-xl pb-6 pt-6 gap-4 flex flex-wrap">
+        <CardFooter className="border-t rounded-b-xl pb-6 pt-6 gap-4 grid grid-cols-2">
           {status === "PENDING" && (
             <Button type="button" asChild>
               <Link to={`/orders/${orderId}/pix`}>
@@ -150,7 +150,12 @@ export function OrderItem({
             </Button>
           )}
 
-          <Button type="button" variant="outline" className="w-full" asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full col-span-2"
+            asChild
+          >
             <Link to={`/orders/${orderId}`}>Mais detalhes</Link>
           </Button>
         </CardFooter>

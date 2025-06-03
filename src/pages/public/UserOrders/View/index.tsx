@@ -13,7 +13,7 @@ import { formatCPF, moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import QRCode from "react-qr-code";
 import OrderStatusHistory from "@/components/order-status-history";
 import { PaymentCard } from "@/components/payment-item";
@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ArrowLeft, CircleX, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
+import { PixIcon } from "@/components/pix-icon";
 
 export function ViewUserOrderPage() {
   const { orderId } = useParams();
@@ -110,6 +111,15 @@ export function ViewUserOrderPage() {
                     {moneyFormatter.format(+order.totalPrice)}
                   </span>
                 </div>
+
+                {order.status === "PENDING" && (
+                  <Button type="button" asChild>
+                    <Link to={`/orders/${orderId}/pix`}>
+                      <PixIcon />
+                      Pagar com PIX
+                    </Link>
+                  </Button>
+                )}
 
                 <Separator />
 
