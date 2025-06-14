@@ -67,8 +67,8 @@ export const columns: ColumnDef<Order>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="w-[100px] truncate">
-          <span className="truncate">{row.getValue("id")}</span>
+        <div className="w-[190px]font-mono truncate">
+          <span className="truncate text-xs">{row.getValue("id")}</span>
         </div>
       );
     },
