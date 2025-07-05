@@ -37,7 +37,7 @@ export function OrdersPage() {
     <>
       <AppHeader routes={[{ path: "orders", title: "Pedidos" }]} />
 
-      <div className="flex flex-col gap-8 px-8 py-4">
+      <div className="flex flex-col gap-8 p-4 md:py-4 md:px-8">
         <div className="flex flex-col gap-4">
           <DataTable data={orders} columns={columns} />
         </div>

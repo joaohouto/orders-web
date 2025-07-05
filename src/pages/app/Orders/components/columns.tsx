@@ -7,8 +7,8 @@ import { DataTableRowActions } from "./data-table-row-actions";
 
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "@/components/order-status-badge";
+import { Link, useParams } from "react-router";
 
 const orderStatuses = {
   PENDING: "PENDENTE",
@@ -66,9 +66,16 @@ export const columns: ColumnDef<Order>[] = [
       <DataTableColumnHeader column={column} title="ID" />
     ),
     cell: ({ row }) => {
+      const { storeSlug } = useParams();
+
       return (
         <div className="w-[190px]font-mono truncate">
-          <span className="truncate text-xs">{row.getValue("id")}</span>
+          <Link
+            to={`/app/${storeSlug}/orders/v/${row.getValue("id")}`}
+            className="truncate text-xs"
+          >
+            {row.getValue("id")}
+          </Link>
         </div>
       );
     },

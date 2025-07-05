@@ -33,7 +33,7 @@ export function DataTableToolbar<TData>({
     setLoadingExport(true);
     try {
       const res = await api.get(`/stores/${storeSlug}/orders/export`, {
-        responseType: "blob", // Isso aqui é essencial
+        responseType: "blob",
       });
 
       const url = URL.createObjectURL(new Blob([res.data]));
@@ -54,9 +54,9 @@ export function DataTableToolbar<TData>({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-3">
       <div className="flex flex-1 items-center space-x-2">
-        <div className="relative">
+        <div className="relative w-full">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar por comprador"
@@ -66,7 +66,7 @@ export function DataTableToolbar<TData>({
             onChange={(event) =>
               table.getColumn("buyerName")?.setFilterValue(event.target.value)
             }
-            className="w-[150px] lg:w-[250px] pl-8"
+            className="w-full md:w-[250px] pl-8"
           />
         </div>
 
@@ -82,21 +82,23 @@ export function DataTableToolbar<TData>({
         )}
       </div>
 
-      <Button variant="outline" onClick={exportCSV} disabled={loadingExport}>
-        {loadingExport ? (
-          <Loader2 className="animate-spin" />
-        ) : (
-          <DownloadIcon />
-        )}
-        Baixar .csv
-      </Button>
+      <div className="flex items-center gap-4">
+        <Button variant="outline" onClick={exportCSV} disabled={loadingExport}>
+          {loadingExport ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <DownloadIcon />
+          )}
+          Baixar .csv
+        </Button>
 
-      <Button variant="outline" asChild>
-        <Link to={`/app/${storeSlug}/orders/find`}>
-          <CameraIcon />
-          Encontrar pedido
-        </Link>
-      </Button>
+        <Button variant="outline" asChild>
+          <Link to={`/app/${storeSlug}/orders/find`}>
+            <CameraIcon />
+            Encontrar pedido
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }
