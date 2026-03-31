@@ -18,6 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CirclePlus,
   CircleXIcon,
   Loader2,
@@ -33,18 +40,18 @@ import api from "@/services/api";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
+const variationTypes = [
+  { value: "GENERIC", label: "Genérico" },
+  { value: "COLOR", label: "Cor" },
+  { value: "SIZE", label: "Tamanho" },
+  { value: "FABRIC", label: "Tecido" },
+] as const;
+
 const formSchema = z.object({
-  slug: z.string({
-    message: "Forneça um valor",
-  }),
-  name: z.string({
-    message: "Forneça um valor",
-  }),
-  description: z
-    .string({
-      message: "Forneça um valor",
-    })
-    .optional(),
+  slug: z.string({ message: "Forneça um valor" }),
+  name: z.string({ message: "Forneça um valor" }),
+  description: z.string({ message: "Forneça um valor" }).optional(),
+  price: z.coerce.number({ message: "Informe um preço" }).positive({ message: "Preço deve ser positivo" }),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
   images: z.array(z.string().url()),
@@ -52,7 +59,8 @@ const formSchema = z.object({
     .array(
       z.object({
         name: z.string({ message: "Informe este campo" }),
-        price: z.coerce.number({ message: "Informe um preço" }),
+        type: z.enum(["GENERIC", "COLOR", "SIZE", "FABRIC"], { message: "Selecione o tipo" }),
+        priceAdjustment: z.coerce.number().default(0),
       })
     )
     .min(1, { message: "Adicione ao menos uma variação" }),
@@ -173,10 +181,16 @@ export function CreateProductPage() {
                   <FormControl>
                     <Textarea {...field} />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            <MoneyInput
+              form={form}
+              label="Preço base"
+              name="price"
+              placeholder="R$"
             />
 
             <FormField
@@ -231,7 +245,7 @@ export function CreateProductPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => variations.append({ name: "", price: 0 })}
+                  onClick={() => variations.append({ name: "", type: "GENERIC", priceAdjustment: 0 })}
                 >
                   <CirclePlus />
                   Adicionar variante
@@ -239,13 +253,13 @@ export function CreateProductPage() {
               </div>
 
               <FormDescription>
-                Adicione variações para seu produto com seus respectivos preços.
+                Adicione variações para seu produto. Use o acréscimo de preço para variações mais caras.
               </FormDescription>
 
               {variations.fields.map((field, index) => (
                 <Card key={field.id} className="border border-muted py-0">
-                  <CardContent className="pt-6">
-                    <div className="grid gap-4 sm:grid-cols-[auto_140px]">
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}
                         name={`variations.${index}.name`}
@@ -253,23 +267,44 @@ export function CreateProductPage() {
                           <FormItem>
                             <FormLabel>Nome da variante</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Ex.: P, M, G, etc."
-                                {...field}
-                              />
+                              <Input placeholder="Ex.: Azul" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
-                      <MoneyInput
-                        form={form}
-                        label="Preço"
-                        name={`variations.${index}.price`}
-                        placeholder="R$"
+                      <FormField
+                        control={form.control}
+                        name={`variations.${index}.type`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo</FormLabel>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {variationTypes.map((t) => (
+                                  <SelectItem key={t.value} value={t.value}>
+                                    {t.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                     </div>
+
+                    <MoneyInput
+                      form={form}
+                      label="Acréscimo de preço (opcional)"
+                      name={`variations.${index}.priceAdjustment`}
+                      placeholder="R$ 0,00"
+                    />
                   </CardContent>
                   <CardFooter className="flex justify-end border-t bg-muted/20 p-4">
                     <Button

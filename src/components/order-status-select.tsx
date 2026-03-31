@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import api from "@/services/api";
+import { Loader2 } from "lucide-react";
 
 const orderStatuses = {
   PENDING: "PENDENTE",
@@ -42,23 +43,28 @@ export function OrderStatusSelect({
   });
 
   return (
-    <Select
-      value={initialStatus}
-      onValueChange={(value) =>
-        mutation.mutate(value as keyof typeof orderStatuses)
-      }
-      disabled={mutation.isPending}
-    >
-      <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Selecionar status" />
-      </SelectTrigger>
-      <SelectContent>
-        {Object.entries(orderStatuses).map(([key, label]) => (
-          <SelectItem key={key} value={key}>
-            {label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="flex items-center gap-2">
+      <Select
+        value={initialStatus}
+        onValueChange={(value) =>
+          mutation.mutate(value as keyof typeof orderStatuses)
+        }
+        disabled={mutation.isPending}
+      >
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="Selecionar status" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(orderStatuses).map(([key, label]) => (
+            <SelectItem key={key} value={key}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {mutation.isPending && (
+        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+      )}
+    </div>
   );
 }

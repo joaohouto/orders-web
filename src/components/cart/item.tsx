@@ -17,14 +17,14 @@ export const CartItem = ({ item }: Props) => {
       </div>
       <div className="flex-1">
         <p className="text-md">
-          {item.product.name} - {item.product.variationName}
+          {item.product.name} - {item.product.variationNames}
         </p>
 
         {item.product.note && (
           <p className="text-xs opacity-50">{item.product.note}</p>
         )}
         <p className="text-xs opacity-50">
-          {moneyFormatter.format(+item.product.price)}
+          {moneyFormatter.format(item.product.price)}
         </p>
       </div>
       <div>

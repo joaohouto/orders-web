@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import api from "@/services/api";
 import { Cart } from "@/types/cart";
 import { CPFInput } from "@/components/cpf-input";
+import { useReward } from "react-rewards";
 
 const formSchema = z.object({
   name: z.string({
@@ -66,11 +67,18 @@ export function CheckoutPage() {
 
   let subtotal = 0;
   for (const item of cart) {
-    subtotal += item.quantity * +item.product.price;
+    subtotal += item.quantity * item.product.price;
   }
 
   const { user, updateUser } = useAuth();
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  const { reward } = useReward("checkout-reward", "confetti", {
+    elementCount: 120,
+    spread: 80,
+    lifetime: 220,
+    startVelocity: 25,
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,7 +105,7 @@ export function CheckoutPage() {
       const items = cart.map((cartItem: Cart) => {
         return {
           productId: cartItem.product.productId,
-          variationId: cartItem.product.id,
+          variationIds: cartItem.product.variationIds,
           quantity: cartItem.quantity,
           note: cartItem.product.note,
         };
@@ -110,10 +118,13 @@ export function CheckoutPage() {
         }
       );
 
-      toast.success(`Pedido criado! ID ${orderResponse.data.id}`);
+      reward();
+      toast.success(`Pedido #${orderResponse.data.code} criado!`);
 
-      navigate("/orders");
-      clearCart();
+      setTimeout(() => {
+        navigate("/orders");
+        clearCart();
+      }, 1200);
     } catch (err) {
       toast.error("Erro ao criar pedido");
       console.log(err);
@@ -147,7 +158,7 @@ export function CheckoutPage() {
               <CardContent>
                 <div className="flex flex-col gap-5 my-3">
                   {cart.map((item) => (
-                    <CartItem key={item.product.id} item={item} />
+                    <CartItem key={item.product.cartKey} item={item} />
                   ))}
                 </div>
 
@@ -245,13 +256,14 @@ export function CheckoutPage() {
               </CardContent>
             </Card>
 
-            <Button size="lg" disabled={loadingSubmit || cart.length === 0}>
+            <Button size="lg" disabled={loadingSubmit || cart.length === 0} className="relative">
               {loadingSubmit ? (
                 <Loader2 className="animate-spin" />
               ) : (
                 <CheckCircle />
               )}
               Fechar pedido
+              <span id="checkout-reward" className="absolute inset-x-1/2" />
             </Button>
           </div>
         </form>

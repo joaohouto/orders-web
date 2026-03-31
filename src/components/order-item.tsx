@@ -25,8 +25,7 @@ type ProductItem = {
     images: string[];
   };
   productName: string;
-  variationName: string;
-  variation: string;
+  selectedVariations: { variationName: string; variationType: string }[];
   quantity: number;
   unitPrice: number;
   note?: string;
@@ -45,6 +44,7 @@ type OrderStatus = keyof typeof orderStatuses;
 
 type OrderItemProps = {
   orderId: string;
+  code: number;
   createdAt: Date;
   updatedAt: Date;
   status: OrderStatus;
@@ -55,6 +55,7 @@ type OrderItemProps = {
 
 export function OrderItem({
   orderId,
+  code,
   createdAt,
   updatedAt,
   status,
@@ -85,7 +86,7 @@ export function OrderItem({
       <Card className="py-0">
         <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto] gap-2">
           <div className="flex flex-col">
-            <CardTitle>Pedido criado em</CardTitle>
+            <CardTitle>Pedido #{code}</CardTitle>
             <CardDescription>
               {dayjs(createdAt)
                 .locale("pt-BR")
@@ -99,7 +100,7 @@ export function OrderItem({
         <CardContent className="flex flex-col gap-4">
           <h3 className="font-semibold">Detalhes do pedido</h3>
 
-          {products.map((item, index) => (
+          {products?.map((item, index) => (
             <div
               key={index}
               className="grid grid-cols-[48px_auto_1fr_auto] items-center gap-2 text-sm text-muted-foreground"
@@ -112,7 +113,11 @@ export function OrderItem({
 
               <span className="text-center">{item.quantity}x</span>
               <span>
-                {item.productName} - {item.variationName} <br />
+                {item.productName} -{" "}
+                {item.selectedVariations
+                  ?.map((v) => v.variationName)
+                  .join(" / ")}{" "}
+                <br />
                 <i>{item.note}</i>
               </span>
               <span className="text-right">

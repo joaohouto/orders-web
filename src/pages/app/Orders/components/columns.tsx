@@ -23,6 +23,7 @@ type OrderStatus = keyof typeof orderStatuses;
 
 type Order = {
   id: string;
+  code: number;
   storeId: string;
   userId: string;
   user: {
@@ -31,7 +32,7 @@ type Order = {
   status: OrderStatus;
   totalPrice: string;
   createdAt: Date;
-  updatedAr: Date;
+  updatedAt: Date;
 };
 
 export const columns: ColumnDef<Order>[] = [
@@ -63,18 +64,18 @@ export const columns: ColumnDef<Order>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
+      <DataTableColumnHeader column={column} title="Pedido" />
     ),
     cell: ({ row }) => {
       const { storeSlug } = useParams();
 
       return (
-        <div className="w-[190px]font-mono truncate">
+        <div className="font-mono">
           <Link
             to={`/app/${storeSlug}/orders/v/${row.getValue("id")}`}
-            className="truncate text-xs"
+            className="text-sm font-medium"
           >
-            {row.getValue("id")}
+            #{(row.original as Order).code}
           </Link>
         </div>
       );

@@ -26,6 +26,8 @@ import { PixPaymentPage } from "../pages/public/PixPayment";
 import { UserOrdersPage } from "@/pages/public/UserOrders";
 import { SearchOrderPage } from "@/pages/app/Orders/Search";
 import { ViewUserOrderPage } from "@/pages/public/UserOrders/View";
+import { TermosPage } from "@/pages/public/Legal/termos";
+import { PrivacidadePage } from "@/pages/public/Legal/privacidade";
 
 export function Routes() {
   return (
@@ -61,6 +63,9 @@ export function Routes() {
             <Route path="orders/find" element={<SearchOrderPage />} />
           </Route>
         </Route>
+
+        <Route path="/termos" element={<TermosPage />} />
+        <Route path="/privacidade" element={<PrivacidadePage />} />
 
         <Route path="/:storeSlug" element={<StorePage />} />
         <Route path="/:storeSlug/p/:productSlug" element={<ProductPage />} />

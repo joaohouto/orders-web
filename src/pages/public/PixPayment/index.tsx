@@ -8,14 +8,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Check, Copy, InfoIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "recharts";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { LoadingPage } from "@/components/page-loading";
-import { ErrorPage } from "@/components/page-error";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
@@ -23,6 +21,7 @@ export function PixPaymentPage() {
   const [copied, setCopied] = useState(false);
 
   const { orderId } = useParams();
+  const navigate = useNavigate();
 
   const {
     data: payment,
@@ -31,6 +30,7 @@ export function PixPaymentPage() {
   } = useQuery({
     queryKey: [`payment-${orderId}`],
     queryFn: getPayment,
+    retry: false,
   });
 
   async function getPayment() {
@@ -38,14 +38,20 @@ export function PixPaymentPage() {
     return res.data;
   }
 
+  useEffect(() => {
+    if (isError) {
+      toast.error("Não foi possível gerar o código PIX para este pedido.");
+      navigate(`/orders/${orderId}`, { replace: true });
+    }
+  }, [isError]);
+
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(payment.pix);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.info("Copiado!");
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Não foi possível copiar. Selecione o código manualmente.");
     }
   };
 
@@ -54,7 +60,7 @@ export function PixPaymentPage() {
   }
 
   if (isError) {
-    return <ErrorPage />;
+    return null;
   }
 
   return (
@@ -63,64 +69,55 @@ export function PixPaymentPage() {
         <CardHeader>
           <CardTitle>Complete seu pagamento</CardTitle>
           <CardDescription>
-            Escaneie o QRCode ou copie o código Pix para o seu app de banco
+            Escaneie o QR Code ou copie o código PIX para o seu app de banco
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex justify-center p-4 bg-muted rounded-lg">
-            <img className="rounded-lg" src={payment.qrcode} />
+          <div className="flex justify-center p-6 bg-white rounded-xl border">
+            <img
+              className="rounded-lg w-48 h-48 object-contain"
+              src={payment.qrcode}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Código de pagamento</Label>
-
-            <div className="flex gap-2">
-              <Input
-                id="payment-code"
-                value={payment.pix}
-                readOnly
-                className="font-mono text-sm"
-              />
-
-              <Button
-                variant="default"
-                className="shrink-0"
-                size="icon"
-                onClick={copyToClipboard}
-              >
-                {copied ? (
+            <p className="text-sm font-medium">Código de pagamento</p>
+            <Input
+              value={payment.pix}
+              readOnly
+              className="font-mono text-xs text-muted-foreground"
+            />
+            <Button
+              variant={copied ? "outline" : "default"}
+              className="w-full transition-all"
+              onClick={copyToClipboard}
+            >
+              {copied ? (
+                <>
                   <Check className="h-4 w-4" />
-                ) : (
+                  Código copiado!
+                </>
+              ) : (
+                <>
                   <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+                  Copiar código PIX
+                </>
+              )}
+            </Button>
           </div>
 
           <Alert>
             <InfoIcon className="h-4 w-4" />
-            <AlertTitle>Atenção, pague só uma vez.</AlertTitle>
-            <AlertDescription className="text-balance">
-              Iremos confirmar o seu pagamento manualmente em até 1 dia útil.
+            <AlertTitle>Pague somente uma vez.</AlertTitle>
+            <AlertDescription>
+              O seu pix irá diretamente para o vendedor, e o pagamento é
+              confirmado manualmente por ele.
             </AlertDescription>
           </Alert>
-
-          <div className="rounded-lg border p-4 bg-muted/50">
-            <h3 className="font-medium mb-2">Como pagar?</h3>
-            <ol className="list-decimal list-inside space-y-1 text-sm">
-              <li>Escaneie o QRCode com seu app de banco</li>
-              <li>Ou copie o código Pix para o seu portal de pagamento</li>
-              <li>Complete o processo de pagamento no app</li>
-              <li>
-                Quando seu pagamento for confirmado, você receberá um aviso no
-                seu email
-              </li>
-            </ol>
-          </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full">
-            <Link to="/orders">Ir para meus pedidos</Link>
+          <Button variant="outline" className="w-full" asChild>
+            <Link to="/orders">Ver meus pedidos</Link>
           </Button>
         </CardFooter>
       </Card>

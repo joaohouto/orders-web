@@ -18,7 +18,8 @@ import QRCode from "react-qr-code";
 import OrderStatusHistory from "@/components/order-status-history";
 import { PaymentCard } from "@/components/payment-item";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, CircleX, Loader2 } from "lucide-react";
+import { ArrowLeft, CircleX } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { PixIcon } from "@/components/pix-icon";
@@ -51,9 +52,75 @@ export function ViewUserOrderPage() {
         </Button>
 
         {isLoading && (
-          <div className="flex-1 flex justify-center items-center">
-            <Loader2 className="animate-spin" />
-          </div>
+          <>
+            {/* Store card */}
+            <Skeleton className="h-16 w-full rounded-xl" />
+
+            {/* Main order card */}
+            <div className="rounded-xl border overflow-hidden">
+              <div className="bg-muted px-6 pt-6 pb-4 flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-28 rounded" />
+                  <Skeleton className="h-4 w-48 rounded" />
+                </div>
+                <Skeleton className="h-6 w-24 rounded-full" />
+              </div>
+
+              <div className="px-6 py-5 flex flex-col gap-4">
+                <Skeleton className="h-4 w-36 rounded" />
+
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="grid grid-cols-[48px_auto_1fr_auto] items-center gap-2"
+                  >
+                    <Skeleton className="size-12 rounded-md" />
+                    <Skeleton className="h-4 w-6 rounded" />
+                    <Skeleton className="h-4 w-full rounded" />
+                    <Skeleton className="h-4 w-14 rounded" />
+                  </div>
+                ))}
+
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-10 rounded" />
+                  <Skeleton className="h-4 w-20 rounded" />
+                </div>
+
+                <Skeleton className="h-px w-full rounded" />
+
+                <Skeleton className="h-4 w-44 rounded" />
+
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex justify-between">
+                    <Skeleton className="h-4 w-20 rounded" />
+                    <Skeleton className="h-4 w-28 rounded" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t px-6 py-4">
+                <Skeleton className="h-4 w-52 rounded" />
+              </div>
+            </div>
+
+            {/* Status history */}
+            <div className="rounded-xl border px-6 py-5 flex flex-col gap-3">
+              <Skeleton className="h-4 w-32 rounded" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="size-2 rounded-full flex-shrink-0" />
+                  <Skeleton className="h-4 w-full rounded" />
+                </div>
+              ))}
+            </div>
+
+            {/* QR code card */}
+            <div className="rounded-xl border px-6 py-5 flex flex-col gap-3">
+              <Skeleton className="h-5 w-28 rounded" />
+              <Skeleton className="h-4 w-40 rounded" />
+              <Skeleton className="h-40 w-40 mx-auto rounded-lg" />
+            </div>
+          </>
         )}
 
         {isError && (
@@ -66,10 +133,31 @@ export function ViewUserOrderPage() {
 
         {order && (
           <>
+            {order.store && (
+              <Link
+                to={`/${order.store.slug}`}
+                className="flex items-center gap-3 p-3 rounded-xl border bg-background hover:border-primary transition-colors w-full"
+              >
+                <img
+                  src={order.store.icon || "/placeholder.svg"}
+                  alt={order.store.name}
+                  className="size-10 rounded-lg border bg-muted object-cover flex-shrink-0"
+                />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground leading-none mb-1">
+                    Pedido na loja
+                  </p>
+                  <p className="text-sm font-semibold leading-none">
+                    {order.store.name}
+                  </p>
+                </div>
+              </Link>
+            )}
+
             <Card className="py-0">
               <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
                 <div className="flex flex-col">
-                  <CardTitle>Pedido criado em </CardTitle>
+                  <CardTitle>Pedido #{order.code}</CardTitle>
                   <CardDescription>
                     {dayjs(order.createdAt)
                       .locale("pt-Br")
@@ -96,7 +184,11 @@ export function ViewUserOrderPage() {
 
                     <span className="text-center">{item.quantity}x</span>
                     <span>
-                      {item.productName} - {item.variationName} <br />
+                      {item.productName} -{" "}
+                      {item.selectedVariations
+                        ?.map((v: any) => v.variationName)
+                        .join(" / ")}{" "}
+                      <br />
                       <i>{item.note}</i>
                     </span>
                     <span className="text-right">
@@ -135,7 +227,7 @@ export function ViewUserOrderPage() {
                   <span className="text-right">
                     {order.user.phone.replace(
                       /^(\d{2})(\d{5})(\d{4})$/,
-                      "($1) $2-$3"
+                      "($1) $2-$3",
                     )}
                   </span>
                 </div>
@@ -167,7 +259,7 @@ export function ViewUserOrderPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Identificação</CardTitle>
-                <CardDescription>{orderId}</CardDescription>
+                <CardDescription>#{orderId}</CardDescription>
               </CardHeader>
 
               <CardContent>

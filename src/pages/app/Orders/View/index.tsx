@@ -51,7 +51,7 @@ export function ViewOrderPage() {
       <AppHeader
         routes={[
           { path: "orders", title: "Pedidos" },
-          { path: `orders/v/${orderId}`, title: orderId || "" },
+          { path: `orders/v/${orderId}`, title: `#${order.code}` },
         ]}
       />
 
@@ -61,7 +61,7 @@ export function ViewOrderPage() {
         <Card className="py-0">
           <CardHeader className="rounded-t-xl bg-muted pt-6 pb-4 grid grid-cols-[1fr_auto]">
             <div className="flex flex-col">
-              <CardTitle>Pedido</CardTitle>
+              <CardTitle>Pedido #{order.code}</CardTitle>
               <CardDescription>
                 Criado em{" "}
                 {dayjs(order.createdAt)
@@ -89,7 +89,7 @@ export function ViewOrderPage() {
 
                 <span className="text-center">{item.quantity}x</span>
                 <span>
-                  {item.productName} - {item.variationName} <br />
+                  {item.productName} - {item.selectedVariations?.map((v: any) => v.variationName).join(" / ")} <br />
                   <i>{item.note}</i>
                 </span>
                 <span className="text-right">

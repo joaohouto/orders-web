@@ -18,6 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CirclePlus,
   CircleXIcon,
   Loader2,
@@ -36,28 +43,28 @@ import { useQuery } from "@tanstack/react-query";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
 
+const variationTypes = [
+  { value: "GENERIC", label: "Genérico" },
+  { value: "COLOR", label: "Cor" },
+  { value: "SIZE", label: "Tamanho" },
+  { value: "FABRIC", label: "Tecido" },
+] as const;
+
 const formSchema = z.object({
-  slug: z.string({
-    message: "Forneça um valor",
-  }),
-  name: z.string({
-    message: "Forneça um valor",
-  }),
-  description: z
-    .string({
-      message: "Forneça um valor",
-    })
-    .optional(),
+  slug: z.string({ message: "Forneça um valor" }),
+  name: z.string({ message: "Forneça um valor" }),
+  description: z.string({ message: "Forneça um valor" }).optional(),
+  price: z.coerce.number({ message: "Informe um preço" }).positive({ message: "Preço deve ser positivo" }),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
   images: z.array(z.string().url()),
   variations: z.array(
     z.object({
       name: z.string({ message: "Informe este campo" }),
-      price: z.coerce.number({ message: "Informe um preço" }),
+      type: z.enum(["GENERIC", "COLOR", "SIZE", "FABRIC"], { message: "Selecione o tipo" }),
+      priceAdjustment: z.coerce.number().default(0),
     })
   ),
-  bulkPrice: z.coerce.number().optional(), //temp
 });
 
 export function EditProductPage() {
@@ -90,14 +97,15 @@ export function EditProductPage() {
         name: product.name,
         slug: product.slug,
         description: product.description,
+        price: Number(product.price),
         isActive: product.isActive,
         acceptOrderNote: product.acceptOrderNote,
         images: product.images,
         variations: product.variations.map((v: any) => ({
           name: v.name,
-          price: Number(v.price),
+          type: v.type,
+          priceAdjustment: Number(v.priceAdjustment ?? 0),
         })),
-        bulkPrice: undefined, // Ensure bulkPrice is reset
       });
     }
   }, [product]);
@@ -107,36 +115,13 @@ export function EditProductPage() {
     name: "variations",
   } as never);
 
-  // Function to apply the bulk price to all variations
-  const handleApplyAllPrice = () => {
-    const priceToApply = form.getValues("bulkPrice"); // Get the number directly from the form state
-    if (
-      priceToApply !== undefined &&
-      !isNaN(priceToApply) &&
-      priceToApply >= 0
-    ) {
-      variations.fields.forEach((_, index) => {
-        form.setValue(`variations.${index}.price`, priceToApply, {
-          shouldDirty: true, // Mark form as dirty
-          shouldValidate: true, // Re-validate the field
-        });
-      });
-      toast.info("Preço aplicado a todas as variações.");
-    } else {
-      toast.error("Por favor, insira um preço válido e positivo para aplicar.");
-    }
-  };
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoadingAction(true);
 
     try {
-      const valuesToSubmit = { ...values };
-      delete valuesToSubmit.bulkPrice;
-
       await api.put(
         `/stores/${storeSlug}/products/${productSlug}`,
-        valuesToSubmit
+        values
       );
 
       toast.success(`Produto atualizado!`);
@@ -144,7 +129,7 @@ export function EditProductPage() {
       navigate(-1);
     } catch (err) {
       console.log(err);
-      toast.error("Erro ao criar produto");
+      toast.error("Erro ao atualizar produto");
     } finally {
       setLoadingAction(false);
     }
@@ -238,10 +223,16 @@ export function EditProductPage() {
                   <FormControl>
                     <Textarea {...field} />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            <MoneyInput
+              form={form}
+              label="Preço base"
+              name="price"
+              placeholder="R$"
             />
 
             <FormField
@@ -299,7 +290,8 @@ export function EditProductPage() {
                   onClick={() =>
                     variations.append({
                       name: "",
-                      price: form.getValues("variations")[0]?.price || 0, // Use optional chaining for safety
+                      type: "GENERIC",
+                      priceAdjustment: 0,
                     })
                   }
                 >
@@ -308,37 +300,15 @@ export function EditProductPage() {
                 </Button>
               </div>
 
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <MoneyInput
-                    form={form}
-                    label="Aplicar preço a todas as variações"
-                    name="bulkPrice"
-                    placeholder="R$"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  onClick={handleApplyAllPrice}
-                  disabled={
-                    form.watch("bulkPrice") === undefined ||
-                    isNaN(form.watch("bulkPrice")!) ||
-                    form.watch("bulkPrice")! < 0
-                  }
-                >
-                  Aplicar
-                </Button>
-              </div>
-
               <FormDescription>
-                Adicione variações para seu produto com seus respectivos preços.
+                Adicione variações para seu produto. Use o acréscimo de preço para variações mais caras.
               </FormDescription>
 
               <div className="overflow-y-auto max-h-[400px] space-y-2">
                 {variations.fields.map((field, index) => (
                   <Card key={field.id} className="border border-muted">
-                    <CardContent className="pt-2">
-                      <div className="grid gap-4 sm:grid-cols-[auto_140px]">
+                    <CardContent className="pt-2 space-y-3">
+                      <div className="grid gap-4 sm:grid-cols-2">
                         <FormField
                           control={form.control}
                           name={`variations.${index}.name`}
@@ -346,23 +316,44 @@ export function EditProductPage() {
                             <FormItem>
                               <FormLabel>Nome da variante</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="Ex.: P, M, G, etc."
-                                  {...field}
-                                />
+                                <Input placeholder="Ex.: Azul" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-
-                        <MoneyInput
-                          form={form}
-                          label="Preço"
-                          name={`variations.${index}.price`}
-                          placeholder="R$"
+                        <FormField
+                          control={form.control}
+                          name={`variations.${index}.type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {variationTypes.map((t) => (
+                                    <SelectItem key={t.value} value={t.value}>
+                                      {t.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       </div>
+
+                      <MoneyInput
+                        form={form}
+                        label="Acréscimo de preço (opcional)"
+                        name={`variations.${index}.priceAdjustment`}
+                        placeholder="R$ 0,00"
+                      />
                     </CardContent>
                     <CardFooter className="flex justify-end border-t bg-muted/20 p-2">
                       <Button

@@ -1,6 +1,6 @@
 import { Header } from "@/components/header";
 import { ErrorPage } from "@/components/page-error";
-import { LoadingPage } from "@/components/page-loading";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useCartStore } from "@/stores/cart-store";
+import { VariationType } from "@/types/product";
 import { useQuery } from "@tanstack/react-query";
 import {
   ChevronLeft,
@@ -28,24 +29,33 @@ import {
   Minus,
   Plus,
   ShoppingCart,
+  ZoomIn,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { alertDialog } from "@/components/alert-dialog";
+import { toast } from "sonner";
 import { SiteFooter } from "@/components/footer";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const typeLabels: Record<VariationType, string> = {
+  GENERIC: "Variação",
+  COLOR: "Cor",
+  SIZE: "Tamanho",
+  FABRIC: "Tecido",
+};
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
-
-  const [selectedVariation, setSelectedVariation] = useState({
-    id: "",
-    name: "",
-    price: "",
-  });
+  const [selectedByType, setSelectedByType] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
+  const [selectionError, setSelectionError] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { storeSlug, productSlug } = useParams();
 
@@ -78,37 +88,103 @@ export function ProductPage() {
 
   const { upsertCartItem } = useCartStore((state) => state);
 
+  // Derived values (only valid when product is loaded)
+  const variationsByType: Record<string, any[]> = product
+    ? product.variations.reduce((acc: Record<string, any[]>, v: any) => {
+        if (!acc[v.type]) acc[v.type] = [];
+        acc[v.type].push(v);
+        return acc;
+      }, {})
+    : {};
+
+  const typeKeys = Object.keys(variationsByType);
+  const allSelected = typeKeys.every((type) => selectedByType[type]);
+
+  const selectedVariationsList = Object.values(selectedByType)
+    .map((id) => product?.variations.find((v: any) => v.id === id))
+    .filter(Boolean);
+
+  const totalPriceAdjustment = selectedVariationsList.reduce(
+    (sum: number, v: any) => sum + Number(v.priceAdjustment || 0),
+    0
+  );
+
+  const displayPrice = product
+    ? Number(product.price) + totalPriceAdjustment
+    : 0;
+
   const handleAddButton = () => {
-    if (selectedVariation.id === "") {
-      alertDialog("Escolha uma variação.");
+    if (!allSelected) {
+      setSelectionError(true);
+      setTimeout(() => setSelectionError(false), 2000);
       return;
     }
 
+    const variationIds = Object.values(selectedByType);
+    const cartKey = `${product.id}:${[...variationIds].sort().join(",")}`;
+    const variationNames = selectedVariationsList
+      .map((v: any) => v.name)
+      .join(" / ");
+
     upsertCartItem(
       {
-        id: selectedVariation.id,
+        cartKey,
         storeId: product.storeId,
         productId: product.id,
         name: product.name,
         images: product.images,
-        variationName: selectedVariation.name,
-        price: selectedVariation.price,
+        variationIds,
+        variationNames,
+        price: displayPrice,
         note,
       },
       quantity
     );
-    toast.success("Feito", {
-      description: `${product.name} - ${selectedVariation.name} foi adicionado ao carrinho!`,
-      duration: 2000,
-    });
+    toast.success("Adicionado ao carrinho!", { duration: 2000 });
   };
-
-  if (isLoading) {
-    return <LoadingPage />;
-  }
 
   if (isError) {
     return <ErrorPage />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center">
+        <Header />
+        <div className="w-full lg:w-[1000px] flex flex-col px-4 py-8 gap-4 mb-20">
+          <Skeleton className="h-4 w-48 rounded mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <Skeleton className="aspect-square w-full rounded-xl" />
+              <div className="flex gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="size-16 rounded-md flex-shrink-0" />
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-5">
+              <Skeleton className="h-9 w-3/4 rounded-md" />
+              <Skeleton className="h-8 w-1/3 rounded-md" />
+              <Skeleton className="h-20 w-full rounded-md" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16 rounded" />
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-20 rounded" />
+                <div className="flex gap-2">
+                  <Skeleton className="size-9 rounded-md" />
+                  <Skeleton className="w-8 h-9 rounded" />
+                  <Skeleton className="size-9 rounded-md" />
+                </div>
+              </div>
+              <Skeleton className="h-11 w-full rounded-md" />
+            </div>
+          </div>
+        </div>
+        <SiteFooter />
+      </div>
+    );
   }
 
   return (
@@ -135,37 +211,87 @@ export function ProductPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-lg">
+            <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted group">
               {product.images?.length > 1 && (
                 <Button
                   size="icon"
-                  className="absolute left-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background hover:bg-muted text-foreground"
+                  className="absolute left-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background text-foreground shadow-sm"
                   onClick={prevImage}
                 >
                   <ChevronLeft />
-                  <span className="sr-only">Previous image</span>
+                  <span className="sr-only">Imagem anterior</span>
                 </Button>
               )}
 
-              <a href={product.images[currentImage]} target="_blank">
+              <button
+                className="w-full h-full block relative"
+                onClick={() => setLightboxOpen(true)}
+              >
                 <img
                   src={product.images[currentImage] || "/placeholder.svg"}
                   alt={product.name}
-                  className="object-contain w-full h-full bg-muted"
+                  className="object-contain w-full h-full"
                 />
-              </a>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
+                  <ZoomIn className="size-6 text-foreground/0 group-hover:text-foreground/40 transition-all" />
+                </div>
+              </button>
 
               {product.images?.length > 1 && (
                 <Button
                   size="icon"
-                  className="absolute right-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background hover:bg-muted text-foreground"
+                  className="absolute right-2 top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background text-foreground shadow-sm"
                   onClick={nextImage}
                 >
                   <ChevronRight className="h-4 w-4" />
-                  <span className="sr-only">Next image</span>
+                  <span className="sr-only">Próxima imagem</span>
                 </Button>
               )}
             </div>
+
+            <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+              <DialogContent className="max-w-5xl w-[95vw] p-2 bg-background/98 backdrop-blur-md">
+                <DialogTitle className="sr-only">{product.name}</DialogTitle>
+                <div className="relative">
+                  <img
+                    src={product.images[currentImage] || "/placeholder.svg"}
+                    alt={product.name}
+                    className="w-full max-h-[88vh] object-contain rounded-lg"
+                  />
+                  {product.images?.length > 1 && (
+                    <>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm"
+                        onClick={prevImage}
+                      >
+                        <ChevronLeft />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm"
+                        onClick={nextImage}
+                      >
+                        <ChevronRight />
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {product.images?.length > 1 && (
+                  <div className="flex gap-2 justify-center pt-1 pb-1">
+                    {product.images.map((_: string, i: number) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentImage(i)}
+                        className={`size-2 rounded-full transition-colors ${i === currentImage ? "bg-foreground" : "bg-muted-foreground/30"}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
 
             <div className="flex space-x-2 overflow-auto pb-2">
               {product.images?.map((image: string, index: number) => (
@@ -195,48 +321,88 @@ export function ProductPage() {
             </h1>
 
             <div className="text-3xl font-bold">
-              {moneyFormatter.format(
-                +selectedVariation?.price || +product.variations[0].price
-              )}
+              {moneyFormatter.format(displayPrice)}
             </div>
 
             <p className="prose prose-neutral dark:prose-invert">
               <ReactMarkdown>{product.description}</ReactMarkdown>
             </p>
 
-            <div>
-              <h3 className="text-sm font-medium">Variações</h3>
+            {/* Variation selectors grouped by type */}
+            <div className="flex flex-col gap-5">
+              {selectionError && (
+                <span className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-right-2">
+                  Selecione todas as variações
+                </span>
+              )}
 
-              <div className="mt-2">
-                <Select
-                  value={selectedVariation?.id}
-                  onValueChange={(value) => {
-                    const selected = product.variations.find(
-                      (v: any) => v.id === value
-                    );
-                    setSelectedVariation(selected);
-                  }}
-                >
-                  <SelectTrigger className="w-full h-10 px-3 rounded-md border text-sm font-medium">
-                    <SelectValue placeholder="Selecione uma variação" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {product.variations?.map((variation: any) => (
-                      <SelectItem
-                        key={variation.id}
-                        value={variation.id}
-                        className={`${
-                          selectedVariation?.id === variation.id
-                            ? "bg-primary text-primary-foreground"
-                            : "hover:bg-accent hover:text-accent-foreground"
-                        }`}
+              {typeKeys.map((type) => (
+                <div key={type}>
+                  <h3 className={`text-sm font-medium mb-2 ${selectionError && !selectedByType[type] ? "text-destructive" : ""}`}>
+                    {typeLabels[type as VariationType] ?? type}
+                  </h3>
+
+                  {type === "GENERIC" ? (
+                    <Select
+                      value={selectedByType[type] ?? ""}
+                      onValueChange={(value) => {
+                        setSelectedByType((prev) => ({ ...prev, [type]: value }));
+                        setSelectionError(false);
+                      }}
+                    >
+                      <SelectTrigger
+                        className={selectionError && !selectedByType[type] ? "border-destructive ring-1 ring-destructive" : ""}
                       >
-                        {variation.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                        <SelectValue placeholder="Selecione uma variação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {variationsByType[type].map((variation: any) => (
+                          <SelectItem key={variation.id} value={variation.id}>
+                            {variation.name}
+                            {Number(variation.priceAdjustment) !== 0 && (
+                              <span className="ml-1.5 text-xs text-muted-foreground">
+                                {Number(variation.priceAdjustment) > 0 ? "+" : ""}
+                                {moneyFormatter.format(Number(variation.priceAdjustment))}
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {variationsByType[type].map((variation: any) => {
+                        const isSelected = selectedByType[type] === variation.id;
+                        return (
+                          <button
+                            key={variation.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedByType((prev) => ({ ...prev, [type]: variation.id }));
+                              setSelectionError(false);
+                            }}
+                            className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : selectionError && !selectedByType[type]
+                                ? "border-destructive/60 hover:border-destructive"
+                                : "border-border hover:border-foreground/40"
+                            }`}
+                          >
+                            {variation.name}
+                            {Number(variation.priceAdjustment) !== 0 && (
+                              <span className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}>
+                                {Number(variation.priceAdjustment) > 0 ? "+" : ""}
+                                {moneyFormatter.format(Number(variation.priceAdjustment))}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Quantity */}
@@ -249,7 +415,7 @@ export function ProductPage() {
                   onClick={decrementQuantity}
                 >
                   <Minus />
-                  <span className="sr-only">Diminiuir quantidade</span>
+                  <span className="sr-only">Diminuir quantidade</span>
                 </Button>
                 <span className="w-6 text-center">{quantity}</span>
                 <Button
