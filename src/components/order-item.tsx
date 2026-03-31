@@ -113,10 +113,10 @@ export function OrderItem({
 
               <span className="text-center">{item.quantity}x</span>
               <span>
-                {item.productName} -{" "}
-                {item.selectedVariations
-                  ?.map((v) => v.variationName)
-                  .join(" / ")}{" "}
+                {item.productName}
+                {(item.selectedVariations ?? []).length > 0 && (
+                  <> - {(item.selectedVariations ?? []).map((v) => v.variationName).join(" / ")}</>
+                )}{" "}
                 <br />
                 <i>{item.note}</i>
               </span>
