@@ -18,15 +18,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { moneyFormatter } from "@/lib/utils";
+import { cn, moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useCartStore } from "@/stores/cart-store";
 import { VariationType } from "@/types/product";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   Minus,
+  PackageX,
   Plus,
   ShoppingCart,
   ZoomIn,
@@ -34,13 +36,8 @@ import {
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import ReactMarkdown from "react-markdown";
-import { toast } from "sonner";
 import { SiteFooter } from "@/components/footer";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const typeLabels: Record<VariationType, string> = {
   GENERIC: "Variação",
@@ -52,10 +49,13 @@ const typeLabels: Record<VariationType, string> = {
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
-  const [selectedByType, setSelectedByType] = useState<Record<string, string>>({});
+  const [selectedByType, setSelectedByType] = useState<Record<string, string>>(
+    {},
+  );
   const [note, setNote] = useState("");
   const [selectionError, setSelectionError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const { storeSlug, productSlug } = useParams();
 
@@ -63,10 +63,13 @@ export function ProductPage() {
     data: product,
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: [`store-${storeSlug}-product-${productSlug}`],
     queryFn: getProduct,
   });
+
+  const isNotFound = isError && (error as any)?.response?.status === 404;
 
   async function getProduct() {
     const res = await api.get(`/stores/${storeSlug}/products/${productSlug}`);
@@ -82,7 +85,7 @@ export function ProductPage() {
 
   const prevImage = () => {
     setCurrentImage(
-      (currentImage - 1 + product.images.length) % product.images.length
+      (currentImage - 1 + product.images.length) % product.images.length,
     );
   };
 
@@ -106,7 +109,7 @@ export function ProductPage() {
 
   const totalPriceAdjustment = selectedVariationsList.reduce(
     (sum: number, v: any) => sum + Number(v.priceAdjustment || 0),
-    0
+    0,
   );
 
   const displayPrice = product
@@ -138,10 +141,35 @@ export function ProductPage() {
         price: displayPrice,
         note,
       },
-      quantity
+      quantity,
     );
-    toast.success("Adicionado ao carrinho!", { duration: 2000 });
+
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 1500);
   };
+
+  if (isNotFound) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center px-4 py-20">
+          <div className="rounded-full bg-muted p-6">
+            <PackageX className="size-10 text-muted-foreground" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Produto não encontrado</h2>
+            <p className="text-muted-foreground text-sm">
+              Este produto não existe ou foi removido da loja.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link to={`/${storeSlug}`}>Voltar para a loja</Link>
+          </Button>
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   if (isError) {
     return <ErrorPage />;
@@ -158,7 +186,10 @@ export function ProductPage() {
               <Skeleton className="aspect-square w-full rounded-xl" />
               <div className="flex gap-2">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="size-16 rounded-md flex-shrink-0" />
+                  <Skeleton
+                    key={i}
+                    className="size-16 rounded-md flex-shrink-0"
+                  />
                 ))}
               </div>
             </div>
@@ -191,7 +222,7 @@ export function ProductPage() {
     <div className="flex flex-col items-center justify-center">
       <Header />
 
-      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-8 gap-4 mb-20">
+      <div className="w-full lg:w-[1000px] flex flex-col px-4 py-8 gap-4 mb-20 md:mb-20 pb-20 md:pb-0">
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -211,7 +242,7 @@ export function ProductPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted group">
+            <div className="relative aspect-square overflow-hidden rounded-xl border bg-[#F4F4F5] group">
               {product.images?.length > 1 && (
                 <Button
                   size="icon"
@@ -233,7 +264,9 @@ export function ProductPage() {
                   className="object-contain w-full h-full"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
-                  <ZoomIn className="size-6 text-foreground/0 group-hover:text-foreground/40 transition-all" />
+                  <div className="opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-200 ease-out bg-black/50 p-3 rounded-full">
+                    <ZoomIn className="size-6 text-white/75" />
+                  </div>
                 </div>
               </button>
 
@@ -256,7 +289,7 @@ export function ProductPage() {
                   <img
                     src={product.images[currentImage] || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-full max-h-[88vh] object-contain rounded-lg"
+                    className="w-full max-h-[88vh] object-contain rounded-lg bg-[#F4F4F5]"
                   />
                   {product.images?.length > 1 && (
                     <>
@@ -280,7 +313,7 @@ export function ProductPage() {
                   )}
                 </div>
                 {product.images?.length > 1 && (
-                  <div className="flex gap-2 justify-center pt-1 pb-1">
+                  <div className="flex gap-2 justify-center pt-1 pb-3">
                     {product.images.map((_: string, i: number) => (
                       <button
                         key={i}
@@ -297,7 +330,7 @@ export function ProductPage() {
               {product.images?.map((image: string, index: number) => (
                 <button
                   key={index}
-                  className={`relative size-18 flex-shrink-0 overflow-hidden rounded-md border-2 bg-muted ${
+                  className={`relative size-17 flex-shrink-0 overflow-hidden rounded-md border-2 bg-muted ${
                     currentImage === index
                       ? "border-primary"
                       : "border-transparent"
@@ -307,7 +340,7 @@ export function ProductPage() {
                   <img
                     src={image}
                     alt={product.name}
-                    className="object-cover bg-muted"
+                    className="object-cover bg-[#F4F4F5]"
                   />
                 </button>
               ))}
@@ -316,11 +349,11 @@ export function ProductPage() {
 
           {/* Product Details */}
           <div className="flex flex-col gap-6">
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-4xl font-bold tracking-tight">
               {product.name}
             </h1>
 
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold text-muted-foreground">
               {moneyFormatter.format(displayPrice)}
             </div>
 
@@ -338,7 +371,9 @@ export function ProductPage() {
 
               {typeKeys.map((type) => (
                 <div key={type}>
-                  <h3 className={`text-sm font-medium mb-2 ${selectionError && !selectedByType[type] ? "text-destructive" : ""}`}>
+                  <h3
+                    className={`text-sm font-medium mb-2 ${selectionError && !selectedByType[type] ? "text-destructive" : ""}`}
+                  >
                     {typeLabels[type as VariationType] ?? type}
                   </h3>
 
@@ -346,12 +381,20 @@ export function ProductPage() {
                     <Select
                       value={selectedByType[type] ?? ""}
                       onValueChange={(value) => {
-                        setSelectedByType((prev) => ({ ...prev, [type]: value }));
+                        setSelectedByType((prev) => ({
+                          ...prev,
+                          [type]: value,
+                        }));
                         setSelectionError(false);
                       }}
                     >
                       <SelectTrigger
-                        className={selectionError && !selectedByType[type] ? "border-destructive ring-1 ring-destructive" : ""}
+                        className={cn(
+                          selectionError && !selectedByType[type]
+                            ? "border-destructive ring-1 ring-destructive"
+                            : "",
+                          "w-full",
+                        )}
                       >
                         <SelectValue placeholder="Selecione uma variação" />
                       </SelectTrigger>
@@ -361,8 +404,12 @@ export function ProductPage() {
                             {variation.name}
                             {Number(variation.priceAdjustment) !== 0 && (
                               <span className="ml-1.5 text-xs text-muted-foreground">
-                                {Number(variation.priceAdjustment) > 0 ? "+" : ""}
-                                {moneyFormatter.format(Number(variation.priceAdjustment))}
+                                {Number(variation.priceAdjustment) > 0
+                                  ? "+"
+                                  : ""}
+                                {moneyFormatter.format(
+                                  Number(variation.priceAdjustment),
+                                )}
                               </span>
                             )}
                           </SelectItem>
@@ -372,28 +419,38 @@ export function ProductPage() {
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {variationsByType[type].map((variation: any) => {
-                        const isSelected = selectedByType[type] === variation.id;
+                        const isSelected =
+                          selectedByType[type] === variation.id;
                         return (
                           <button
                             key={variation.id}
                             type="button"
                             onClick={() => {
-                              setSelectedByType((prev) => ({ ...prev, [type]: variation.id }));
+                              setSelectedByType((prev) => ({
+                                ...prev,
+                                [type]: variation.id,
+                              }));
                               setSelectionError(false);
                             }}
-                            className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-all ${
+                            className={`px-3 py-1.5 min-w-10 rounded-md border text-sm font-medium transition-all ${
                               isSelected
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : selectionError && !selectedByType[type]
-                                ? "border-destructive/60 hover:border-destructive"
-                                : "border-border hover:border-foreground/40"
+                                  ? "border-destructive/60 hover:border-destructive"
+                                  : "border-border hover:border-foreground/40"
                             }`}
                           >
                             {variation.name}
                             {Number(variation.priceAdjustment) !== 0 && (
-                              <span className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}>
-                                {Number(variation.priceAdjustment) > 0 ? "+" : ""}
-                                {moneyFormatter.format(Number(variation.priceAdjustment))}
+                              <span
+                                className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}
+                              >
+                                {Number(variation.priceAdjustment) > 0
+                                  ? "+"
+                                  : ""}
+                                {moneyFormatter.format(
+                                  Number(variation.priceAdjustment),
+                                )}
                               </span>
                             )}
                           </button>
@@ -442,9 +499,23 @@ export function ProductPage() {
 
             {/* Add to Cart */}
             <div className="flex space-x-2">
-              <Button onClick={handleAddButton} className="w-full" size="lg">
-                <ShoppingCart />
-                Adicionar ao carrinho
+              <Button
+                onClick={handleAddButton}
+                className="w-full transition-all"
+                size="lg"
+                disabled={addedToCart}
+              >
+                {addedToCart ? (
+                  <>
+                    <Check className="animate-in zoom-in-50 duration-200" />
+                    Adicionado!
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart />
+                    Adicionar ao carrinho
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -452,6 +523,7 @@ export function ProductPage() {
       </div>
 
       <SiteFooter />
+
     </div>
   );
 }

@@ -8,27 +8,26 @@ type Props = {
 
 export const CartItem = ({ item }: Props) => {
   return (
-    <div className="flex items-center gap-5">
-      <div className="w-16 overflow-hidden">
+    <div className="flex items-start gap-3">
+      <div className="flex-shrink-0">
         <img
           src={item.product.images[0] || "/placeholder.svg"}
           className="w-16 h-16 rounded-md object-contain bg-muted border"
         />
       </div>
-      <div className="flex-1">
-        <p className="text-md">
-          {item.product.name} - {item.product.variationNames}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium leading-snug">
+          {item.product.name} — {item.product.variationNames}
         </p>
-
         {item.product.note && (
-          <p className="text-xs opacity-50">{item.product.note}</p>
+          <p className="text-xs opacity-50 mt-0.5">{item.product.note}</p>
         )}
-        <p className="text-xs opacity-50">
+        <p className="text-xs opacity-50 mt-0.5">
           {moneyFormatter.format(item.product.price)}
         </p>
-      </div>
-      <div>
-        <CartItemQuantity cartItem={item} />
+        <div className="mt-2">
+          <CartItemQuantity cartItem={item} />
+        </div>
       </div>
     </div>
   );

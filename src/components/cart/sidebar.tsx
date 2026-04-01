@@ -17,7 +17,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export const CartSidebar = () => {
   const navigate = useNavigate();
 
-  const { cart, isCartOpen, openCart, closeCart } = useCartStore((state) => state);
+  const { cart, isCartOpen, openCart, closeCart } = useCartStore(
+    (state) => state,
+  );
   const isMobile = useIsMobile();
 
   let subtotal = 0;
@@ -31,7 +33,10 @@ export const CartSidebar = () => {
   }
 
   return (
-    <Sheet open={isCartOpen} onOpenChange={(open) => open ? openCart() : closeCart()}>
+    <Sheet
+      open={isCartOpen}
+      onOpenChange={(open) => (open ? openCart() : closeCart())}
+    >
       <SheetTrigger asChild>
         <Button className="relative" variant="outline">
           <ShoppingCartIcon className="mr-1" />
@@ -43,7 +48,7 @@ export const CartSidebar = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Carrinho</SheetTitle>
         </SheetHeader>

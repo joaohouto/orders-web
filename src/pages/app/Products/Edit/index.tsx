@@ -27,6 +27,7 @@ import {
 import {
   CirclePlus,
   CircleXIcon,
+  GripVertical,
   Loader2,
   SaveIcon,
   Trash2,
@@ -42,6 +43,186 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableImageItem({
+  fieldId,
+  index,
+  src,
+  form,
+  onRemove,
+}: {
+  fieldId: string;
+  index: number;
+  src: string;
+  form: any;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: fieldId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group w-fit">
+      <img
+        src={src}
+        className="size-[100px] border rounded-md object-contain bg-muted/30"
+      />
+      <button
+        type="button"
+        className="absolute inset-0 rounded-md cursor-grab opacity-0 group-hover:opacity-100 bg-black/10 flex items-center justify-center transition-opacity"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-5 text-white drop-shadow-md" />
+      </button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={onRemove}
+        className="absolute -right-2 -top-2 size-6 p-0 rounded-full bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+      >
+        <CircleXIcon className="size-3.5" />
+      </Button>
+      <FormField
+        control={form.control}
+        name={`images.${index}`}
+        render={({ field: formField }) => (
+          <FormItem>
+            <FormControl>
+              <Input className="hidden" {...formField} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
+
+type VariationFormItem = {
+  id: string;
+  name: string;
+  type: "GENERIC" | "COLOR" | "SIZE" | "FABRIC";
+  priceAdjustment: number;
+};
+
+function SortableVariationCard({
+  field,
+  index,
+  form,
+  onRemove,
+}: {
+  field: VariationFormItem;
+  index: number;
+  form: any;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: field.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className="border border-muted">
+      <CardContent className="pt-2 space-y-3">
+        <div className="flex items-start gap-2">
+          <button
+            type="button"
+            className="mt-7 cursor-grab touch-none text-muted-foreground hover:text-foreground"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="size-4" />
+          </button>
+          <div className="grid gap-4 sm:grid-cols-2 flex-1">
+            <FormField
+              control={form.control}
+              name={`variations.${index}.name`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome da variante</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex.: Azul" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={`variations.${index}.type`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {variationTypes.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <MoneyInput
+          form={form}
+          label="Acréscimo de preço (opcional)"
+          name={`variations.${index}.priceAdjustment`}
+          placeholder="R$ 0,00"
+        />
+      </CardContent>
+      <CardFooter className="flex justify-end border-t bg-muted/20 p-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+        >
+          <Trash2 />
+          Remover
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
 const variationTypes = [
   { value: "GENERIC", label: "Genérico" },
@@ -114,6 +295,36 @@ export function EditProductPage() {
     control: form.control,
     name: "variations",
   } as never);
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = variations.fields.findIndex((f: any) => f.id === active.id);
+      const newIndex = variations.fields.findIndex((f: any) => f.id === over.id);
+      variations.move(oldIndex, newIndex);
+    }
+  }
+
+  function handleImageDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = images.fields.findIndex((f: any) => f.id === active.id);
+      const newIndex = images.fields.findIndex((f: any) => f.id === over.id);
+      images.move(oldIndex, newIndex);
+    }
+  }
+
+  function handleAddVariation() {
+    const fields = form.getValues("variations") as VariationFormItem[];
+    const last = fields[fields.length - 1];
+    variations.append(
+      last
+        ? { name: "", type: last.type, priceAdjustment: last.priceAdjustment }
+        : { name: "", type: "GENERIC", priceAdjustment: 0 }
+    );
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoadingAction(true);
@@ -287,13 +498,7 @@ export function EditProductPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    variations.append({
-                      name: "",
-                      type: "GENERIC",
-                      priceAdjustment: 0,
-                    })
-                  }
+                  onClick={handleAddVariation}
                 >
                   <CirclePlus />
                   Adicionar variante
@@ -304,122 +509,75 @@ export function EditProductPage() {
                 Adicione variações para seu produto. Use o acréscimo de preço para variações mais caras.
               </FormDescription>
 
-              <div className="overflow-y-auto max-h-[400px] space-y-2">
-                {variations.fields.map((field, index) => (
-                  <Card key={field.id} className="border border-muted">
-                    <CardContent className="pt-2 space-y-3">
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <FormField
-                          control={form.control}
-                          name={`variations.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome da variante</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex.: Azul" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`variations.${index}.type`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo</FormLabel>
-                              <Select value={field.value} onValueChange={field.onChange}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o tipo" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {variationTypes.map((t) => (
-                                    <SelectItem key={t.value} value={t.value}>
-                                      {t.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <MoneyInput
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                modifiers={[restrictToVerticalAxis]}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={variations.fields.map((f: any) => f.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="overflow-y-auto max-h-[400px] space-y-2">
+                    {variations.fields.map((field: any, index: number) => (
+                      <SortableVariationCard
+                        key={field.id}
+                        field={field}
+                        index={index}
                         form={form}
-                        label="Acréscimo de preço (opcional)"
-                        name={`variations.${index}.priceAdjustment`}
-                        placeholder="R$ 0,00"
+                        onRemove={() => variations.remove(index)}
                       />
-                    </CardContent>
-                    <CardFooter className="flex justify-end border-t bg-muted/20 p-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => variations.remove(index)}
-                        className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                      >
-                        <Trash2 />
-                        Remover
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-                {form.formState.errors.variations?.root && (
-                  <p className="text-sm font-medium text-destructive">
-                    {form.formState.errors.variations.root.message}
-                  </p>
-                )}
-              </div>
+                    ))}
+                    {form.formState.errors.variations?.root && (
+                      <p className="text-sm font-medium text-destructive">
+                        {form.formState.errors.variations.root.message}
+                      </p>
+                    )}
+                  </div>
+                </SortableContext>
+              </DndContext>
             </div>
 
             <Separator />
 
             <Label>Imagens</Label>
 
-            <div className="flex flex-row flex-wrap gap-4">
-              {images.fields.map((field, index) => (
-                <div key={field.id} className="relative w-fit">
-                  <img
-                    src={form.watch(`images.${index}`)}
-                    className="size-[100px] border rounded-md object-contain"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => images.remove(index)}
-                    className="absolute right-0 top-0"
-                  >
-                    <CircleXIcon />
-                  </Button>
-                  <FormField
-                    control={form.control}
-                    name={`images.${index}`}
-                    render={({ field: formField }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input className="hidden" {...formField} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              ))}
-            </div>
+            {images.fields.length > 0 && (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleImageDragEnd}
+              >
+                <SortableContext
+                  items={images.fields.map((f: any) => f.id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="flex flex-row flex-wrap gap-4 pt-1">
+                    {images.fields.map((field: any, index: number) => (
+                      <SortableImageItem
+                        key={field.id}
+                        fieldId={field.id}
+                        index={index}
+                        src={form.watch(`images.${index}`)}
+                        form={form}
+                        onRemove={() => images.remove(index)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )}
 
-            {images.fields.length < 5 && (
+            {images.fields.length < 10 && (
               <FileUploader
                 multiple
-                maxFileCount={5}
+                maxFileCount={10 - images.fields.length}
                 onUpload={async (files: File[]) => {
-                  const file = await handleImageUpload(files);
-                  images.append(file.url);
+                  for (const file of files) {
+                    const result = await handleImageUpload([file]);
+                    if (result) images.append(result.url);
+                  }
                 }}
               />
             )}
