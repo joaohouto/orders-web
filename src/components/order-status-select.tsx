@@ -7,7 +7,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import api from "@/services/api";
-import { Loader2 } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  Package,
+  Truck,
+  XCircle,
+  ShoppingBag,
+  Loader2,
+} from "lucide-react";
 
 const orderStatuses = {
   PENDING: "PENDENTE",
@@ -17,6 +25,15 @@ const orderStatuses = {
   DELIVERED: "ENTREGUE",
   CANCELED: "CANCELADO",
 };
+
+const statusIcons = {
+  PENDING: { Icon: Clock, className: "text-amber-600" },
+  CONFIRMED: { Icon: CheckCircle, className: "text-green-600" },
+  IN_PRODUCTION: { Icon: ShoppingBag, className: "text-gray-600" },
+  READY: { Icon: Package, className: "text-gray-600" },
+  DELIVERED: { Icon: Truck, className: "text-gray-600" },
+  CANCELED: { Icon: XCircle, className: "text-red-600" },
+} as const;
 
 export function OrderStatusSelect({
   orderId,
@@ -55,11 +72,18 @@ export function OrderStatusSelect({
           <SelectValue placeholder="Selecionar status" />
         </SelectTrigger>
         <SelectContent>
-          {Object.entries(orderStatuses).map(([key, label]) => (
-            <SelectItem key={key} value={key}>
-              {label}
-            </SelectItem>
-          ))}
+          {Object.entries(orderStatuses).map(([key, label]) => {
+            const { Icon, className } =
+              statusIcons[key as keyof typeof statusIcons];
+            return (
+              <SelectItem key={key} value={key}>
+                <span className="flex items-center gap-2">
+                  <Icon className={`size-4 ${className}`} />
+                  {label}
+                </span>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
       {mutation.isPending && (

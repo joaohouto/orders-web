@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { useParams } from "react-router";
 import OrderStatusHistory from "@/components/order-status-history";
 import { PaymentCard } from "@/components/payment-item";
+import { MessageCircle } from "lucide-react";
 
 import { OrderStatusSelect } from "@/components/order-status-select";
 
@@ -79,20 +80,28 @@ export function ViewOrderPage() {
             {order.items?.map((item: any) => (
               <div
                 key={item.id}
-                className="grid grid-cols-[56px_32px_1fr_100px] gap-2 text-muted-foreground"
+                className="grid grid-cols-[56px_32px_1fr] md:grid-cols-[56px_32px_1fr_100px] gap-2 text-muted-foreground"
               >
                 <img
                   src={item.product.images[0] || "/placeholder.svg"}
                   alt={item.productName}
-                  className="size-[56px) aspect-square rounded-md border bg-muted object-contain"
+                  className="size-[56px] aspect-square rounded-md border bg-muted object-contain"
                 />
 
                 <span className="text-center">{item.quantity}x</span>
-                <span>
-                  {item.productName} - {item.selectedVariations?.map((v: any) => v.variationName).join(" / ")} <br />
-                  <i>{item.note}</i>
-                </span>
-                <span className="text-right">
+                <div className="flex flex-col">
+                  <span>
+                    {item.productName}
+                    {item.selectedVariations?.length > 0 && (
+                      <> - {item.selectedVariations.map((v: any) => v.variationName).join(" / ")}</>
+                    )}
+                  </span>
+                  {item.note && <i className="text-sm">{item.note}</i>}
+                  <span className="md:hidden text-sm font-medium text-foreground">
+                    {moneyFormatter.format(+item.unitPrice)}
+                  </span>
+                </div>
+                <span className="hidden md:block text-right">
                   {moneyFormatter.format(+item.unitPrice)}
                 </span>
               </div>
@@ -116,12 +125,23 @@ export function ViewOrderPage() {
 
             <div className="grid grid-cols-2 gap-2 ">
               <span className="text-muted-foreground">Telefone</span>
-              <span className="text-right">
-                {order.user.phone.replace(
-                  /^(\d{2})(\d{5})(\d{4})$/,
-                  "($1) $2-$3"
-                )}
-              </span>
+              <div className="flex items-center justify-end gap-2">
+                <span>
+                  {order.user.phone.replace(
+                    /^(\d{2})(\d{5})(\d{4})$/,
+                    "($1) $2-$3"
+                  )}
+                </span>
+                <a
+                  href={`https://wa.me/55${order.user.phone.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:text-green-700 transition-colors"
+                  title="Abrir no WhatsApp"
+                >
+                  <MessageCircle className="size-4" />
+                </a>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 ">
