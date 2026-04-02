@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,7 +26,7 @@ export function AppHeader({
         <Breadcrumb>
           <BreadcrumbList>
             {routes?.map((route, index) => (
-              <>
+              <React.Fragment key={route.path}>
                 {index !== routes.length - 1 ? (
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
@@ -41,7 +42,7 @@ export function AppHeader({
                 )}
 
                 {index !== routes.length - 1 && <BreadcrumbSeparator />}
-              </>
+              </React.Fragment>
             ))}
           </BreadcrumbList>
         </Breadcrumb>

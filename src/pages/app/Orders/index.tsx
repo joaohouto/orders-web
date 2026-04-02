@@ -6,10 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 export function OrdersPage() {
   const { storeSlug } = useParams();
+  const navigate = useNavigate();
 
   const {
     data: orders,
@@ -39,7 +40,13 @@ export function OrdersPage() {
 
       <div className="flex flex-col gap-8 p-4 md:py-4 md:px-8">
         <div className="flex flex-col gap-4">
-          <DataTable data={orders} columns={columns} />
+          <DataTable
+            data={orders}
+            columns={columns}
+            onRowClick={(row: any) =>
+              navigate(`/app/${storeSlug}/orders/v/${row.id}`)
+            }
+          />
         </div>
       </div>
     </>

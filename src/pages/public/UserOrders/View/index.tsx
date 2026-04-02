@@ -184,10 +184,10 @@ export function ViewUserOrderPage() {
 
                     <span className="text-center">{item.quantity}x</span>
                     <span>
-                      {item.productName} -{" "}
-                      {item.selectedVariations
-                        ?.map((v: any) => v.variationName)
-                        .join(" / ")}{" "}
+                      {item.productName}
+                      {item.selectedVariations?.length > 0 && (
+                        <> - {item.selectedVariations.map((v: any) => v.variationName).join(" / ")}</>
+                      )}{" "}
                       <br />
                       <i>{item.note}</i>
                     </span>

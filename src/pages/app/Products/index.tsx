@@ -2,7 +2,7 @@ import { AppHeader } from "@/components/app-header";
 
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
@@ -12,6 +12,7 @@ import { columns } from "./components/columns";
 
 export function ProductsPage() {
   const { storeSlug } = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = parseInt(searchParams.get("page") || "1");
@@ -61,7 +62,13 @@ export function ProductsPage() {
 
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 px-8 py-4 ">
-          <DataTable data={data.data} columns={columns} />
+          <DataTable
+            data={data.data}
+            columns={columns}
+            onRowClick={(row: any) =>
+              navigate(`/app/${storeSlug}/products/e/${row.slug}`)
+            }
+          />
         </div>
       </div>
     </>

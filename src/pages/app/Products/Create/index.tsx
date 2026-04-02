@@ -18,13 +18,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   CirclePlus,
   CircleXIcon,
   Loader2,
@@ -32,20 +25,13 @@ import {
   Trash2,
 } from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import MoneyInput from "@/components/money-input";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-
-const variationTypes = [
-  { value: "GENERIC", label: "Genérico" },
-  { value: "COLOR", label: "Cor" },
-  { value: "SIZE", label: "Tamanho" },
-  { value: "FABRIC", label: "Tecido" },
-] as const;
 
 const formSchema = z.object({
   slug: z.string({ message: "Forneça um valor" }),
@@ -55,16 +41,121 @@ const formSchema = z.object({
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
   images: z.array(z.string().url()),
-  variations: z
+  variationGroups: z
     .array(
       z.object({
-        name: z.string({ message: "Informe este campo" }),
-        type: z.enum(["GENERIC", "COLOR", "SIZE", "FABRIC"], { message: "Selecione o tipo" }),
-        priceAdjustment: z.coerce.number().default(0),
+        name: z.string({ message: "Informe o nome do grupo" }),
+        variations: z
+          .array(
+            z.object({
+              name: z.string({ message: "Informe este campo" }),
+              priceAdjustment: z.coerce.number().default(0),
+            })
+          )
+          .min(1, { message: "Adicione ao menos uma variação" }),
       })
     )
-    .min(1, { message: "Adicione ao menos uma variação" }),
+    .min(1, { message: "Adicione ao menos um grupo de variações" }),
 });
+
+type FormValues = z.infer<typeof formSchema>;
+
+function VariationGroupCard({
+  groupIndex,
+  form,
+  onRemove,
+}: {
+  groupIndex: number;
+  form: any;
+  onRemove: () => void;
+}) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: `variationGroups.${groupIndex}.variations`,
+  });
+
+  return (
+    <Card className="border border-muted py-0">
+      <CardHeader className="pt-4 pb-2 flex flex-row items-start justify-between gap-2">
+        <FormField
+          control={form.control}
+          name={`variationGroups.${groupIndex}.name`}
+          render={({ field }) => (
+            <FormItem className="flex-1">
+              <FormLabel>Nome do grupo</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex.: Cor, Tamanho, Tecido" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="mt-6 text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+        >
+          <Trash2 />
+        </Button>
+      </CardHeader>
+
+      <CardContent className="pb-4 space-y-3">
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex items-end gap-2">
+            <FormField
+              control={form.control}
+              name={`variationGroups.${groupIndex}.variations.${index}.name`}
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Variação</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex.: Azul" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="w-36">
+              <MoneyInput
+                form={form}
+                label="Acréscimo"
+                name={`variationGroups.${groupIndex}.variations.${index}.priceAdjustment`}
+                placeholder="R$ 0,00"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(index)}
+              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 mb-0.5"
+            >
+              <CircleXIcon />
+            </Button>
+          </div>
+        ))}
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => append({ name: "", priceAdjustment: 0 })}
+        >
+          <CirclePlus />
+          Adicionar variação
+        </Button>
+
+        {(form.formState.errors.variationGroups?.[groupIndex]?.variations as any)?.root && (
+          <p className="text-sm font-medium text-destructive">
+            {(form.formState.errors.variationGroups?.[groupIndex]?.variations as any).root.message}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function CreateProductPage() {
   const [loadingAction, setLoadingAction] = useState(false);
@@ -72,19 +163,19 @@ export function CreateProductPage() {
   const { storeSlug } = useParams();
   const navigate = useNavigate();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       isActive: true,
     },
   });
 
-  const variations = useFieldArray({
+  const variationGroups = useFieldArray({
     control: form.control,
-    name: "variations",
+    name: "variationGroups",
   } as never);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     setLoadingAction(true);
 
     try {
@@ -240,89 +331,39 @@ export function CreateProductPage() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <FormLabel className="text-base">Variações</FormLabel>
+                <FormLabel className="text-base">Grupos de variações</FormLabel>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => variations.append({ name: "", type: "GENERIC", priceAdjustment: 0 })}
+                  onClick={() =>
+                    (variationGroups as any).append({
+                      name: "",
+                      variations: [{ name: "", priceAdjustment: 0 }],
+                    })
+                  }
                 >
                   <CirclePlus />
-                  Adicionar variante
+                  Adicionar grupo
                 </Button>
               </div>
 
               <FormDescription>
-                Adicione variações para seu produto. Use o acréscimo de preço para variações mais caras.
+                Crie grupos de variações (ex: Cor, Tamanho). Dentro de cada grupo adicione as opções disponíveis.
               </FormDescription>
 
-              {variations.fields.map((field, index) => (
-                <Card key={field.id} className="border border-muted py-0">
-                  <CardContent className="pt-6 space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name={`variations.${index}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome da variante</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex.: Azul" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`variations.${index}.type`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo</FormLabel>
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {variationTypes.map((t) => (
-                                  <SelectItem key={t.value} value={t.value}>
-                                    {t.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <MoneyInput
-                      form={form}
-                      label="Acréscimo de preço (opcional)"
-                      name={`variations.${index}.priceAdjustment`}
-                      placeholder="R$ 0,00"
-                    />
-                  </CardContent>
-                  <CardFooter className="flex justify-end border-t bg-muted/20 p-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => variations.remove(index)}
-                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                    >
-                      <Trash2 />
-                      Remover
-                    </Button>
-                  </CardFooter>
-                </Card>
+              {(variationGroups as any).fields.map((_: any, index: number) => (
+                <VariationGroupCard
+                  key={(variationGroups as any).fields[index].id}
+                  groupIndex={index}
+                  form={form}
+                  onRemove={() => (variationGroups as any).remove(index)}
+                />
               ))}
-              {form.formState.errors.variations?.root && (
+
+              {(form.formState.errors.variationGroups as any)?.root && (
                 <p className="text-sm font-medium text-destructive">
-                  {form.formState.errors.variations.root.message}
+                  {(form.formState.errors.variationGroups as any).root.message}
                 </p>
               )}
             </div>
@@ -332,11 +373,11 @@ export function CreateProductPage() {
             <Label>Imagens</Label>
 
             <div className="flex gap-4 flex-wrap">
-              {images.fields.map((field, index) => (
+              {(images as any).fields.map((field: any, index: number) => (
                 <div key={field.id}>
                   <div className="relative w-fit">
                     <img
-                      src={form.watch(`images.${index}`)}
+                      src={form.watch(`images.${index}` as any)}
                       className="size-[100px] border rounded-md object-contain"
                     />
 
@@ -344,7 +385,7 @@ export function CreateProductPage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => images.remove(index)}
+                      onClick={() => (images as any).remove(index)}
                       className="absolute right-0 top-0"
                     >
                       <CircleXIcon />
@@ -353,7 +394,7 @@ export function CreateProductPage() {
 
                   <FormField
                     control={form.control}
-                    name={`images.${index}`}
+                    name={`images.${index}` as any}
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
@@ -367,13 +408,13 @@ export function CreateProductPage() {
               ))}
             </div>
 
-            {images.fields.length < 5 && (
+            {(images as any).fields.length < 5 && (
               <FileUploader
                 multiple
                 maxFileCount={5}
                 onUpload={async (files: File[]) => {
                   const file = await handleImageUpload(files);
-                  images.append(file.url);
+                  (images as any).append(file.url);
                 }}
               />
             )}

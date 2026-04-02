@@ -10,9 +10,9 @@ import dayjs from "dayjs";
 type Product = {
   id: string;
   name: string;
-  variations: {
+  variationGroups: {
     name: string;
-    price: string;
+    variations: { name: string; priceAdjustment: number }[];
   }[];
 };
 
@@ -57,14 +57,14 @@ export const columns: ColumnDef<Product>[] = [
   },
 
   {
-    accessorKey: "variations",
+    accessorKey: "variationGroups",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Variações" />
+      <DataTableColumnHeader column={column} title="Grupos de variação" />
     ),
     cell: ({ row }) => {
-      const variations = row.getValue("variations") as object[];
-
-      return <span>{variations.length}</span>;
+      const groups = (row.getValue("variationGroups") as any[]) ?? [];
+      const total = groups.reduce((sum, g) => sum + (g.variations?.length ?? 0), 0);
+      return <span>{groups.length} {groups.length !== 1 ? "grupos" : "grupo"} / {total} {total !== 1 ? "variações" : "variação"}</span>;
     },
   },
 

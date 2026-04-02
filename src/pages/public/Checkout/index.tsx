@@ -74,10 +74,11 @@ export function CheckoutPage() {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const { reward } = useReward("checkout-reward", "confetti", {
-    elementCount: 120,
-    spread: 80,
-    lifetime: 220,
-    startVelocity: 25,
+    elementCount: 350,
+    spread: 130,
+    lifetime: 320,
+    startVelocity: 45,
+    zIndex: 9999,
   });
 
   const form = useForm<z.infer<typeof formSchema>>({

@@ -10,18 +10,10 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn, moneyFormatter } from "@/lib/utils";
+import { moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useCartStore } from "@/stores/cart-store";
-import { VariationType } from "@/types/product";
 import { useQuery } from "@tanstack/react-query";
 import {
   Check,
@@ -38,20 +30,14 @@ import { Link, useParams } from "react-router";
 import ReactMarkdown from "react-markdown";
 import { SiteFooter } from "@/components/footer";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-
-const typeLabels: Record<VariationType, string> = {
-  GENERIC: "Variação",
-  COLOR: "Cor",
-  SIZE: "Tamanho",
-  FABRIC: "Tecido",
-};
+import { Separator } from "@/components/ui/separator";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
-  const [selectedByType, setSelectedByType] = useState<Record<string, string>>(
-    {},
-  );
+  const [selectedByGroup, setSelectedByGroup] = useState<
+    Record<string, string>
+  >({});
   const [note, setNote] = useState("");
   const [selectionError, setSelectionError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -92,25 +78,15 @@ export function ProductPage() {
   const { upsertCartItem } = useCartStore((state) => state);
 
   // Derived values (only valid when product is loaded)
-  const variationsByType: Record<string, any[]> = product
-    ? product.variations.reduce((acc: Record<string, any[]>, v: any) => {
-        if (!acc[v.type]) acc[v.type] = [];
-        acc[v.type].push(v);
-        return acc;
-      }, {})
-    : {};
+  const groups: any[] = product?.variationGroups ?? [];
+  const allSelected = groups.every((g: any) => selectedByGroup[g.id]);
 
-  const typeKeys = Object.keys(variationsByType);
-  const allSelected = typeKeys.every((type) => selectedByType[type]);
-
-  const selectedVariationsList = Object.values(selectedByType)
-    .map((id) => product?.variations.find((v: any) => v.id === id))
-    .filter(Boolean);
-
-  const totalPriceAdjustment = selectedVariationsList.reduce(
-    (sum: number, v: any) => sum + Number(v.priceAdjustment || 0),
-    0,
-  );
+  const totalPriceAdjustment = groups.reduce((sum: number, g: any) => {
+    const selectedId = selectedByGroup[g.id];
+    if (!selectedId) return sum;
+    const v = g.variations.find((v: any) => v.id === selectedId);
+    return sum + Number(v?.priceAdjustment || 0);
+  }, 0);
 
   const displayPrice = product
     ? Number(product.price) + totalPriceAdjustment
@@ -123,10 +99,14 @@ export function ProductPage() {
       return;
     }
 
-    const variationIds = Object.values(selectedByType);
+    const variationIds = Object.values(selectedByGroup);
     const cartKey = `${product.id}:${[...variationIds].sort().join(",")}`;
-    const variationNames = selectedVariationsList
-      .map((v: any) => v.name)
+    const variationNames = groups
+      .filter((g: any) => selectedByGroup[g.id])
+      .map((g: any) => {
+        const v = g.variations.find((v: any) => v.id === selectedByGroup[g.id]);
+        return v.name;
+      })
       .join(" / ");
 
     upsertCartItem(
@@ -353,7 +333,7 @@ export function ProductPage() {
               {product.name}
             </h1>
 
-            <div className="text-2xl font-bold text-muted-foreground">
+            <div className="text-2xl font-bold text-foreground opacity-50">
               {moneyFormatter.format(displayPrice)}
             </div>
 
@@ -361,7 +341,9 @@ export function ProductPage() {
               <ReactMarkdown>{product.description}</ReactMarkdown>
             </p>
 
-            {/* Variation selectors grouped by type */}
+            <Separator />
+
+            {/* Variation selectors grouped by variationGroup */}
             <div className="flex flex-col gap-5">
               {selectionError && (
                 <span className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-right-2">
@@ -369,95 +351,52 @@ export function ProductPage() {
                 </span>
               )}
 
-              {typeKeys.map((type) => (
-                <div key={type}>
+              {groups.map((group: any) => (
+                <div key={group.id}>
                   <h3
-                    className={`text-sm font-medium mb-2 ${selectionError && !selectedByType[type] ? "text-destructive" : ""}`}
+                    className={`text-sm font-medium mb-2 ${selectionError && !selectedByGroup[group.id] ? "text-destructive" : ""}`}
                   >
-                    {typeLabels[type as VariationType] ?? type}
+                    {group.name}
                   </h3>
 
-                  {type === "GENERIC" ? (
-                    <Select
-                      value={selectedByType[type] ?? ""}
-                      onValueChange={(value) => {
-                        setSelectedByType((prev) => ({
-                          ...prev,
-                          [type]: value,
-                        }));
-                        setSelectionError(false);
-                      }}
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          selectionError && !selectedByType[type]
-                            ? "border-destructive ring-1 ring-destructive"
-                            : "",
-                          "w-full",
-                        )}
-                      >
-                        <SelectValue placeholder="Selecione uma variação" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {variationsByType[type].map((variation: any) => (
-                          <SelectItem key={variation.id} value={variation.id}>
-                            {variation.name}
-                            {Number(variation.priceAdjustment) !== 0 && (
-                              <span className="ml-1.5 text-xs text-muted-foreground">
-                                {Number(variation.priceAdjustment) > 0
-                                  ? "+"
-                                  : ""}
-                                {moneyFormatter.format(
-                                  Number(variation.priceAdjustment),
-                                )}
-                              </span>
-                            )}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {variationsByType[type].map((variation: any) => {
-                        const isSelected =
-                          selectedByType[type] === variation.id;
-                        return (
-                          <button
-                            key={variation.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedByType((prev) => ({
-                                ...prev,
-                                [type]: variation.id,
-                              }));
-                              setSelectionError(false);
-                            }}
-                            className={`px-3 py-1.5 min-w-10 rounded-md border text-sm font-medium transition-all ${
-                              isSelected
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : selectionError && !selectedByType[type]
-                                  ? "border-destructive/60 hover:border-destructive"
-                                  : "border-border hover:border-foreground/40"
-                            }`}
-                          >
-                            {variation.name}
-                            {Number(variation.priceAdjustment) !== 0 && (
-                              <span
-                                className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}
-                              >
-                                {Number(variation.priceAdjustment) > 0
-                                  ? "+"
-                                  : ""}
-                                {moneyFormatter.format(
-                                  Number(variation.priceAdjustment),
-                                )}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {group.variations.map((variation: any) => {
+                      const isSelected =
+                        selectedByGroup[group.id] === variation.id;
+                      return (
+                        <button
+                          key={variation.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedByGroup((prev) => ({
+                              ...prev,
+                              [group.id]: variation.id,
+                            }));
+                            setSelectionError(false);
+                          }}
+                          className={`px-3 py-1.5 min-w-10 rounded-md border text-sm font-medium transition-all ${
+                            isSelected
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : selectionError && !selectedByGroup[group.id]
+                                ? "border-destructive/60 hover:border-destructive"
+                                : "border-border hover:border-foreground/40"
+                          }`}
+                        >
+                          {variation.name}
+                          {Number(variation.priceAdjustment) !== 0 && (
+                            <span
+                              className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}
+                            >
+                              {Number(variation.priceAdjustment) > 0 ? "+" : ""}
+                              {moneyFormatter.format(
+                                Number(variation.priceAdjustment),
+                              )}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               ))}
             </div>
@@ -523,7 +462,6 @@ export function ProductPage() {
       </div>
 
       <SiteFooter />
-
     </div>
   );
 }

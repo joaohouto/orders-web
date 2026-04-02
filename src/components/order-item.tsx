@@ -25,7 +25,7 @@ type ProductItem = {
     images: string[];
   };
   productName: string;
-  selectedVariations: { variationName: string; variationType: string }[];
+  selectedVariations: { variationName: string; variationGroup: string }[];
   quantity: number;
   unitPrice: number;
   note?: string;

@@ -1,10 +1,13 @@
-export type VariationType = "GENERIC" | "COLOR" | "SIZE" | "FABRIC";
-
 export type Variation = {
   id: string;
   name: string;
-  type: VariationType;
   priceAdjustment: number;
+};
+
+export type VariationGroup = {
+  id: string;
+  name: string;
+  variations: Variation[];
 };
 
 export type Product = {
@@ -17,7 +20,7 @@ export type Product = {
   isActive: boolean;
   acceptOrderNote: boolean;
   storeId: string;
-  variations: Variation[];
+  variationGroups: VariationGroup[];
 };
 
 export type CartProduct = {
@@ -27,7 +30,7 @@ export type CartProduct = {
   name: string;
   images: string[];
   variationIds: string[];
-  variationNames: string; // "Azul / P / Algodão"
+  variationNames: string; // "Cor: Azul / Tamanho: M"
   price: number;
   note: string;
 };

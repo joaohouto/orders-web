@@ -3,12 +3,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
-import { DataTableRowActions } from "./data-table-row-actions";
 
 import dayjs from "dayjs";
 import { moneyFormatter } from "@/lib/utils";
 import { OrderStatusBadge } from "@/components/order-status-badge";
-import { Link, useParams } from "react-router";
 
 const orderStatuses = {
   PENDING: "PENDENTE",
@@ -66,20 +64,11 @@ export const columns: ColumnDef<Order>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Pedido" />
     ),
-    cell: ({ row }) => {
-      const { storeSlug } = useParams();
-
-      return (
-        <div className="font-mono">
-          <Link
-            to={`/app/${storeSlug}/orders/v/${row.getValue("id")}`}
-            className="text-sm font-medium"
-          >
-            #{(row.original as Order).code}
-          </Link>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="font-mono text-sm font-medium">
+        #{(row.original as Order).code}
+      </div>
+    ),
     enableSorting: false,
   },
 
@@ -111,8 +100,8 @@ export const columns: ColumnDef<Order>[] = [
       <DataTableColumnHeader column={column} title="Criado em" />
     ),
     cell: ({ row }) => (
-      <div className="">
-        {dayjs(row.getValue("createdAt")).format("DD-MM-YYYY")}
+      <div className="whitespace-nowrap">
+        {dayjs(row.getValue("createdAt")).format("DD/MM/YYYY HH:mm")}
       </div>
     ),
     enableSorting: true,
@@ -133,8 +122,4 @@ export const columns: ColumnDef<Order>[] = [
     },
   },
 
-  {
-    id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
-  },
 ];

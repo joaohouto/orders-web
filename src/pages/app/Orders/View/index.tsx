@@ -16,9 +16,10 @@ import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useParams } from "react-router";
+import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import OrderStatusHistory from "@/components/order-status-history";
 import { PaymentCard } from "@/components/payment-item";
-import { MessageCircle } from "lucide-react";
 
 import { OrderStatusSelect } from "@/components/order-status-select";
 
@@ -80,28 +81,25 @@ export function ViewOrderPage() {
             {order.items?.map((item: any) => (
               <div
                 key={item.id}
-                className="grid grid-cols-[56px_32px_1fr] md:grid-cols-[56px_32px_1fr_100px] gap-2 text-muted-foreground"
+                className="flex gap-2 text-sm text-muted-foreground"
               >
                 <img
                   src={item.product.images[0] || "/placeholder.svg"}
                   alt={item.productName}
-                  className="size-[56px] aspect-square rounded-md border bg-muted object-contain"
+                  className="size-14 shrink-0 aspect-square rounded-md border bg-muted object-contain"
                 />
-
-                <span className="text-center">{item.quantity}x</span>
-                <div className="flex flex-col">
-                  <span>
-                    {item.productName}
-                    {item.selectedVariations?.length > 0 && (
-                      <> - {item.selectedVariations.map((v: any) => v.variationName).join(" / ")}</>
-                    )}
-                  </span>
-                  {item.note && <i className="text-sm">{item.note}</i>}
-                  <span className="md:hidden text-sm font-medium text-foreground">
-                    {moneyFormatter.format(+item.unitPrice)}
-                  </span>
-                </div>
-                <span className="hidden md:block text-right">
+                <span className="w-8 shrink-0 text-center">{item.quantity}x</span>
+                <span className="flex-1 min-w-0 break-words">
+                  {item.productName}
+                  {item.selectedVariations?.length > 0 && (
+                    <span className="text-muted-foreground/70">
+                      {" — "}
+                      {item.selectedVariations.map((v: any) => v.variationName).join(" / ")}
+                    </span>
+                  )}
+                  {item.note && <><br /><i>{item.note}</i></>}
+                </span>
+                <span className="shrink-0 text-right font-medium">
                   {moneyFormatter.format(+item.unitPrice)}
                 </span>
               </div>
@@ -123,7 +121,7 @@ export function ViewOrderPage() {
               <span className="text-right">{order.user.name}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 ">
+            <div className="grid grid-cols-2 gap-2 items-center">
               <span className="text-muted-foreground">Telefone</span>
               <div className="flex items-center justify-end gap-2">
                 <span>
@@ -132,15 +130,21 @@ export function ViewOrderPage() {
                     "($1) $2-$3"
                   )}
                 </span>
-                <a
-                  href={`https://wa.me/55${order.user.phone.replace(/\D/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-600 hover:text-green-700 transition-colors"
-                  title="Abrir no WhatsApp"
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1.5 text-xs shrink-0"
+                  asChild
                 >
-                  <MessageCircle className="size-4" />
-                </a>
+                  <a
+                    href={`https://wa.me/55${order.user.phone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="size-3.5" />
+                    WhatsApp
+                  </a>
+                </Button>
               </div>
             </div>
 

@@ -1,7 +1,6 @@
 import { Row } from "@tanstack/react-table";
 import {
   ArrowUpRight,
-  EditIcon,
   Loader2Icon,
   MoreHorizontal,
   Trash2,
@@ -78,16 +77,9 @@ export function DataTableRowActions<TData>({
 
         <DropdownMenuContent align="end" className="w-[160px]">
           <DropdownMenuItem asChild>
-            <Link to={`/${storeSlug}/p/${rowItem.slug}`}>
+            <Link to={`/${storeSlug}/p/${rowItem.slug}`} target="_blank">
               <ArrowUpRight />
               Ver produto
-            </Link>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem asChild>
-            <Link to={`/app/${storeSlug}/products/e/${rowItem.slug}`}>
-              <EditIcon />
-              Editar produto
             </Link>
           </DropdownMenuItem>
 
