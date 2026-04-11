@@ -118,14 +118,14 @@ export function ViewOrderPage() {
 
             <div className="grid grid-cols-2 gap-2 ">
               <span className="text-muted-foreground">Nome</span>
-              <span className="text-right">{order.user.name}</span>
+              <span className="text-right">{order.buyerName ?? order.user?.name}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 items-center">
               <span className="text-muted-foreground">Telefone</span>
               <div className="flex items-center justify-end gap-2">
                 <span>
-                  {order.user.phone.replace(
+                  {(order.buyerPhone ?? order.user?.phone)?.replace(
                     /^(\d{2})(\d{5})(\d{4})$/,
                     "($1) $2-$3"
                   )}
@@ -137,7 +137,7 @@ export function ViewOrderPage() {
                   asChild
                 >
                   <a
-                    href={`https://wa.me/55${order.user.phone.replace(/\D/g, "")}`}
+                    href={`https://wa.me/55${(order.buyerPhone ?? order.user?.phone)?.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -148,12 +148,14 @@ export function ViewOrderPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 ">
-              <span className="text-muted-foreground">CPF</span>
-              <span className="text-right">
-                {formatCPF(order.user.document)}
-              </span>
-            </div>
+            {order.user?.document && (
+              <div className="grid grid-cols-2 gap-2 ">
+                <span className="text-muted-foreground">CPF</span>
+                <span className="text-right">
+                  {formatCPF(order.user.document)}
+                </span>
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="border-t rounded-b-xl pb-6 pt-6">

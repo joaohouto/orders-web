@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useCartStore } from "@/stores/cart-store";
@@ -306,7 +307,10 @@ export function ProductPage() {
               </DialogContent>
             </Dialog>
 
-            <div className="flex space-x-2 overflow-auto pb-2">
+            <ScrollArea
+              className="w-full flex space-x-2 pb-2"
+              orientation="horizontal"
+            >
               {product.images?.map((image: string, index: number) => (
                 <button
                   key={index}
@@ -324,7 +328,7 @@ export function ProductPage() {
                   />
                 </button>
               ))}
-            </div>
+            </ScrollArea>
           </div>
 
           {/* Product Details */}

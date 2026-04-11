@@ -20,6 +20,7 @@ import { EditProductPage } from "@/pages/app/Products/Edit";
 
 import { OrdersPage } from "@/pages/app/Orders";
 import { ViewOrderPage } from "@/pages/app/Orders/View";
+import { NewSalePage } from "@/pages/app/Orders/New";
 import { TeamPage } from "@/pages/app/Team";
 import { CheckoutPage } from "../pages/public/Checkout";
 import { PixPaymentPage } from "../pages/public/PixPayment";
@@ -59,6 +60,7 @@ export function Routes() {
             <Route path="config" element={<ConfigStorePage />} />
 
             <Route path="orders" element={<OrdersPage />} />
+            <Route path="orders/new" element={<NewSalePage />} />
             <Route path="orders/v/:orderId" element={<ViewOrderPage />} />
             <Route path="orders/find" element={<SearchOrderPage />} />
           </Route>

@@ -2,6 +2,7 @@ import {
   CogIcon,
   NotebookText,
   Package,
+  ShoppingCart,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -39,6 +40,11 @@ export function NavMain() {
       title: "Pedidos",
       url: `/app/${storeSlug}/orders`,
       icon: NotebookText,
+    },
+    {
+      title: "Nova Venda",
+      url: `/app/${storeSlug}/orders/new`,
+      icon: ShoppingCart,
     },
   ];
 
