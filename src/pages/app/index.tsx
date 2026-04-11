@@ -24,7 +24,7 @@ export function AppPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted flex justify-center items-start md:items-center">
+    <div className="min-h-screen flex justify-center items-start md:items-center">
       <div className="w-full md:max-w-[420px] mx-auto flex flex-col gap-6 px-4 py-12">
         <div className="flex items-center gap-2 text-foreground">
           <info.appIcon className="size-5 text-primary" />
@@ -52,7 +52,9 @@ export function AppPage() {
               />
               <div className="flex-1 min-w-0">
                 <p className="font-medium leading-tight">{store.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">/{store.slug}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  /{store.slug}
+                </p>
               </div>
               <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
             </Link>

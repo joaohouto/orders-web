@@ -307,26 +307,26 @@ export function ProductPage() {
               </DialogContent>
             </Dialog>
 
-            <ScrollArea
-              className="w-full flex space-x-2 pb-2"
-            >
-              {product.images?.map((image: string, index: number) => (
-                <button
-                  key={index}
-                  className={`relative size-17 flex-shrink-0 overflow-hidden rounded-md border-2 bg-muted ${
-                    currentImage === index
-                      ? "border-primary"
-                      : "border-transparent"
-                  }`}
-                  onClick={() => setCurrentImage(index)}
-                >
-                  <img
-                    src={image}
-                    alt={product.name}
-                    className="object-cover bg-[#F4F4F5]"
-                  />
-                </button>
-              ))}
+            <ScrollArea className="w-full" orientation="horizontal">
+              <div className="flex space-x-2 pb-2 w-max">
+                {product.images?.map((image: string, index: number) => (
+                  <button
+                    key={index}
+                    className={`relative size-20 flex-shrink-0 overflow-hidden rounded-md border-2 bg-muted ${
+                      currentImage === index
+                        ? "border-primary"
+                        : "border-transparent"
+                    }`}
+                    onClick={() => setCurrentImage(index)}
+                  >
+                    <img
+                      src={image}
+                      alt={product.name}
+                      className="object-cover bg-[#F4F4F5]"
+                    />
+                  </button>
+                ))}
+              </div>
             </ScrollArea>
           </div>
 

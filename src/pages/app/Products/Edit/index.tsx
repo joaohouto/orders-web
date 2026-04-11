@@ -26,7 +26,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import MoneyInput from "@/components/money-input";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
@@ -66,8 +71,14 @@ function SortableImageItem({
   form: any;
   onRemove: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: fieldId });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: fieldId });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -127,8 +138,14 @@ function SortableVariationRow({
   form: any;
   onRemove: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: varField.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: varField.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -191,8 +208,14 @@ function SortableVariationGroupCard({
   form: any;
   onRemove: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: field.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -293,7 +316,9 @@ const formSchema = z.object({
   slug: z.string({ message: "Forneça um valor" }),
   name: z.string({ message: "Forneça um valor" }),
   description: z.string({ message: "Forneça um valor" }).optional(),
-  price: z.coerce.number({ message: "Informe um preço" }).positive({ message: "Preço deve ser positivo" }),
+  price: z.coerce
+    .number({ message: "Informe um preço" })
+    .positive({ message: "Preço deve ser positivo" }),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
   images: z.array(z.string().url()),
@@ -305,10 +330,10 @@ const formSchema = z.object({
           z.object({
             name: z.string({ message: "Informe este campo" }),
             priceAdjustment: z.coerce.number().default(0),
-          })
+          }),
         )
         .min(1, { message: "Adicione ao menos uma variação" }),
-    })
+    }),
   ),
 });
 
@@ -369,8 +394,12 @@ export function EditProductPage() {
   function handleGroupDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = (variationGroups as any).fields.findIndex((f: any) => f.id === active.id);
-      const newIndex = (variationGroups as any).fields.findIndex((f: any) => f.id === over.id);
+      const oldIndex = (variationGroups as any).fields.findIndex(
+        (f: any) => f.id === active.id,
+      );
+      const newIndex = (variationGroups as any).fields.findIndex(
+        (f: any) => f.id === over.id,
+      );
       (variationGroups as any).move(oldIndex, newIndex);
     }
   }
@@ -378,8 +407,12 @@ export function EditProductPage() {
   function handleImageDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = (images as any).fields.findIndex((f: any) => f.id === active.id);
-      const newIndex = (images as any).fields.findIndex((f: any) => f.id === over.id);
+      const oldIndex = (images as any).fields.findIndex(
+        (f: any) => f.id === active.id,
+      );
+      const newIndex = (images as any).fields.findIndex(
+        (f: any) => f.id === over.id,
+      );
       (images as any).move(oldIndex, newIndex);
     }
   }
@@ -388,10 +421,7 @@ export function EditProductPage() {
     setLoadingAction(true);
 
     try {
-      await api.put(
-        `/stores/${storeSlug}/products/${productSlug}`,
-        values
-      );
+      await api.put(`/stores/${storeSlug}/products/${productSlug}`, values);
 
       toast.success(`Produto atualizado!`);
 
@@ -403,15 +433,6 @@ export function EditProductPage() {
       setLoadingAction(false);
     }
   }
-
-  useEffect(() => {
-    if (form.watch("name")) {
-      form.setValue(
-        "slug",
-        form.watch("name").toLocaleLowerCase().replaceAll(" ", "-")
-      );
-    }
-  }, [form.watch("name")]);
 
   const images = useFieldArray({
     control: form.control,
@@ -569,7 +590,8 @@ export function EditProductPage() {
               </div>
 
               <FormDescription>
-                Crie grupos de variações (ex: Cor, Tamanho). Dentro de cada grupo adicione as opções disponíveis.
+                Crie grupos de variações (ex: Cor, Tamanho). Dentro de cada
+                grupo adicione as opções disponíveis.
               </FormDescription>
 
               <DndContext
@@ -583,18 +605,25 @@ export function EditProductPage() {
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-3">
-                    {(variationGroups as any).fields.map((field: any, index: number) => (
-                      <SortableVariationGroupCard
-                        key={field.id}
-                        field={field}
-                        groupIndex={index}
-                        form={form}
-                        onRemove={() => (variationGroups as any).remove(index)}
-                      />
-                    ))}
+                    {(variationGroups as any).fields.map(
+                      (field: any, index: number) => (
+                        <SortableVariationGroupCard
+                          key={field.id}
+                          field={field}
+                          groupIndex={index}
+                          form={form}
+                          onRemove={() =>
+                            (variationGroups as any).remove(index)
+                          }
+                        />
+                      ),
+                    )}
                     {(form.formState.errors.variationGroups as any)?.root && (
                       <p className="text-sm font-medium text-destructive">
-                        {(form.formState.errors.variationGroups as any).root.message}
+                        {
+                          (form.formState.errors.variationGroups as any).root
+                            .message
+                        }
                       </p>
                     )}
                   </div>

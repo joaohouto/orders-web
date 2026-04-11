@@ -6,7 +6,10 @@ export function DashboardPage() {
       <AppHeader routes={[{ path: "", title: "Painel" }]} />
 
       <div className="w-full md:max-w-[600px] mx-auto p-8">
-        <img src="https://i.gifer.com/oNR.gif" />
+        <img
+          src="https://i.gifer.com/oNR.gif"
+          className="w-full h-auto rounded-lg"
+        />
       </div>
     </>
   );

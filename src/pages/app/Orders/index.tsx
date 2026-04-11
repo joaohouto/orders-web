@@ -6,11 +6,24 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 
 export function OrdersPage() {
   const { storeSlug } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const pageSize = Number(searchParams.get("pageSize")) || 10;
+
+  function handlePageSizeChange(size: number) {
+    setSearchParams(
+      (prev) => {
+        prev.set("pageSize", String(size));
+        return prev;
+      },
+      { replace: true },
+    );
+  }
 
   const {
     data: orders,
@@ -46,6 +59,8 @@ export function OrdersPage() {
             onRowClick={(row: any) =>
               navigate(`/app/${storeSlug}/orders/v/${row.id}`)
             }
+            initialPageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
           />
         </div>
       </div>
