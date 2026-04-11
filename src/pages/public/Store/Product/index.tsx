@@ -309,7 +309,6 @@ export function ProductPage() {
 
             <ScrollArea
               className="w-full flex space-x-2 pb-2"
-              orientation="horizontal"
             >
               {product.images?.map((image: string, index: number) => (
                 <button
