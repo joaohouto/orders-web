@@ -321,6 +321,7 @@ const formSchema = z.object({
     .positive({ message: "Preço deve ser positivo" }),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
+  soldOutAt: z.string().nullable().optional(),
   images: z.array(z.string().url()),
   variationGroups: z.array(
     z.object({
@@ -372,6 +373,7 @@ export function EditProductPage() {
         price: Number(product.price),
         isActive: product.isActive,
         acceptOrderNote: product.acceptOrderNote,
+        soldOutAt: product.soldOutAt ?? null,
         images: product.images,
         variationGroups: product.variationGroups.map((g: any) => ({
           name: g.name,
@@ -562,6 +564,31 @@ export function EditProductPage() {
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="soldOutAt"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Esgotado</FormLabel>
+                    <FormDescription>
+                      Se marcado, o produto será exibido como esgotado na loja
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={!!field.value}
+                      onCheckedChange={(checked) =>
+                        field.onChange(
+                          checked ? new Date().toISOString() : null,
+                        )
+                      }
                     />
                   </FormControl>
                 </FormItem>

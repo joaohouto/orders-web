@@ -79,6 +79,7 @@ export function ProductPage() {
   const { upsertCartItem } = useCartStore((state) => state);
 
   // Derived values (only valid when product is loaded)
+  const isSoldOut = !!product?.soldOutAt;
   const groups: any[] = product?.variationGroups ?? [];
   const allSelected = groups.every((g: any) => selectedByGroup[g.id]);
 
@@ -441,24 +442,35 @@ export function ProductPage() {
 
             {/* Add to Cart */}
             <div className="flex space-x-2">
-              <Button
-                onClick={handleAddButton}
-                className="w-full transition-all"
-                size="lg"
-                disabled={addedToCart}
-              >
-                {addedToCart ? (
-                  <>
-                    <Check className="animate-in zoom-in-50 duration-200" />
-                    Adicionado!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart />
-                    Adicionar ao carrinho
-                  </>
-                )}
-              </Button>
+              {isSoldOut ? (
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled
+                  variant="outline"
+                >
+                  Produto esgotado
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleAddButton}
+                  className="w-full transition-all"
+                  size="lg"
+                  disabled={addedToCart}
+                >
+                  {addedToCart ? (
+                    <>
+                      <Check className="animate-in zoom-in-50 duration-200" />
+                      Adicionado!
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart />
+                      Adicionar ao carrinho
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </div>

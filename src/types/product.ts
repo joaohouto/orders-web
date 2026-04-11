@@ -19,6 +19,7 @@ export type Product = {
   images: string[];
   isActive: boolean;
   acceptOrderNote: boolean;
+  soldOutAt: string | null;
   storeId: string;
   variationGroups: VariationGroup[];
 };
