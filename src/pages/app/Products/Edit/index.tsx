@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
+import { format, isPast } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +18,22 @@ import { AppHeader } from "@/components/app-header";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  CalendarIcon,
   CirclePlus,
   CircleXIcon,
   GripVertical,
   Loader2,
   SaveIcon,
   Trash2,
+  X,
 } from "lucide-react";
 import { FileUploader } from "@/components/file-uploader";
 import {
@@ -312,6 +322,131 @@ function SortableVariationGroupCard({
   );
 }
 
+function SoldOutScheduler({ form }: { form: any }) {
+  const soldOutAt = form.watch("soldOutAt") as string | null | undefined;
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerDate, setPickerDate] = useState<Date | undefined>();
+  const [pickerTime, setPickerTime] = useState("00:00");
+
+  const soldOutDate = soldOutAt ? new Date(soldOutAt) : null;
+  const isAlreadySoldOut = soldOutDate ? isPast(soldOutDate) : false;
+  const isScheduled = soldOutDate ? !isPast(soldOutDate) : false;
+
+  function openScheduler() {
+    if (soldOutDate) {
+      setPickerDate(soldOutDate);
+      setPickerTime(format(soldOutDate, "HH:mm"));
+    } else {
+      setPickerDate(undefined);
+      setPickerTime("00:00");
+    }
+    setPickerOpen(true);
+  }
+
+  function applySchedule() {
+    if (!pickerDate) return;
+    const [hours, minutes] = pickerTime.split(":").map(Number);
+    const date = new Date(pickerDate);
+    date.setHours(hours, minutes, 0, 0);
+    form.setValue("soldOutAt", date.toISOString(), { shouldDirty: true });
+    setPickerOpen(false);
+  }
+
+  return (
+    <div className="rounded-lg border p-3 shadow-sm space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="space-y-0.5">
+          <p className="text-sm font-medium">Esgotado</p>
+          <p className="text-xs text-muted-foreground">
+            {!soldOutAt && "Produto disponível para compra"}
+            {isAlreadySoldOut &&
+              `Esgotado desde ${format(soldOutDate!, "dd/MM/yyyy 'às' HH:mm")}`}
+            {isScheduled &&
+              `Esgota em ${format(soldOutDate!, "dd/MM/yyyy 'às' HH:mm")}`}
+          </p>
+        </div>
+        {soldOutAt && (
+          <Badge variant={isAlreadySoldOut ? "destructive" : "secondary"}>
+            {isAlreadySoldOut ? "Esgotado" : "Agendado"}
+          </Badge>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {soldOutAt ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              form.setValue("soldOutAt", null, { shouldDirty: true })
+            }
+          >
+            <X className="size-3.5" />
+            Remover
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              form.setValue("soldOutAt", new Date().toISOString(), {
+                shouldDirty: true,
+              })
+            }
+          >
+            Esgotar agora
+          </Button>
+        )}
+
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={openScheduler}
+            >
+              <CalendarIcon className="size-3.5" />
+              {soldOutAt ? "Alterar data" : "Agendar"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={pickerDate}
+              onSelect={setPickerDate}
+              autoFocus
+            />
+            <div className="border-t p-3 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground w-10 shrink-0">
+                  Hora
+                </Label>
+                <Input
+                  type="time"
+                  value={pickerTime}
+                  onChange={(e) => setPickerTime(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                onClick={applySchedule}
+                disabled={!pickerDate}
+              >
+                Confirmar
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
+
 const formSchema = z.object({
   slug: z.string({ message: "Forneça um valor" }),
   name: z.string({ message: "Forneça um valor" }),
@@ -570,30 +705,7 @@ export function EditProductPage() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="soldOutAt"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Esgotado</FormLabel>
-                    <FormDescription>
-                      Se marcado, o produto será exibido como esgotado na loja
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={!!field.value}
-                      onCheckedChange={(checked) =>
-                        field.onChange(
-                          checked ? new Date().toISOString() : null,
-                        )
-                      }
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <SoldOutScheduler form={form} />
 
             <Separator />
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { isPast } from "date-fns";
 import { Loader2, Plus, Search, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
@@ -374,30 +375,37 @@ export function NewSalePage() {
                 />
               </div>
               <div className="flex-1 overflow-y-auto flex flex-col gap-1 min-h-0">
-                {products.map((product) => (
-                  <button
-                    key={product.id}
-                    type="button"
-                    className="flex gap-3 items-center p-2 rounded-lg hover:bg-muted text-left w-full"
-                    onClick={() => selectProduct(product)}
-                  >
-                    {product.images[0] && (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="size-10 rounded-md border bg-muted object-contain shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {product.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {moneyFormatter.format(Number(product.price))}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+                {products.map((product) => {
+                  const soldOut =
+                    !!product.soldOutAt && isPast(new Date(product.soldOutAt));
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      disabled={soldOut}
+                      className="flex gap-3 items-center p-2 rounded-lg hover:bg-muted text-left w-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                      onClick={() => !soldOut && selectProduct(product)}
+                    >
+                      {product.images[0] && (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="size-10 rounded-md border bg-muted object-contain shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {soldOut
+                            ? "Esgotado"
+                            : moneyFormatter.format(Number(product.price))}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
                 {products.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8">
                     Nenhum produto encontrado

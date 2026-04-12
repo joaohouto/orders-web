@@ -16,7 +16,7 @@ export function StoreCard({ name, icon, banner, slug }: StoreCardProps) {
           <img
             src={icon || "/placeholder.svg"}
             alt={`Logo da loja ${name}`}
-            className="object-cover h-14 w-14 rounded-xl border bg-muted flex-shrink-0"
+            className="object-cover h-14 w-14 rounded-xl border bg-background flex-shrink-0"
           />
           <div className="min-w-0">
             <h3 className="font-semibold text-base leading-tight">{name}</h3>

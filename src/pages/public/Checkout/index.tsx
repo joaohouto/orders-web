@@ -126,8 +126,16 @@ export function CheckoutPage() {
         navigate("/orders");
         clearCart();
       }, 1200);
-    } catch (err) {
-      toast.error("Erro ao criar pedido");
+    } catch (err: any) {
+      const apiError = err?.response?.data?.error;
+      if (apiError === "Produto esgotado") {
+        toast.error("Produto esgotado", {
+          description:
+            "Um ou mais produtos do seu carrinho estão esgotados. Remova-os para continuar.",
+        });
+      } else {
+        toast.error("Erro ao criar pedido");
+      }
       console.log(err);
     } finally {
       setLoadingSubmit(false);

@@ -6,11 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 
 export function OrdersPage() {
   const { storeSlug } = useParams();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const pageSize = Number(searchParams.get("pageSize")) || 10;
@@ -56,9 +55,7 @@ export function OrdersPage() {
           <DataTable
             data={orders}
             columns={columns}
-            onRowClick={(row: any) =>
-              navigate(`/app/${storeSlug}/orders/v/${row.id}`)
-            }
+            getRowHref={(row: any) => `/app/${storeSlug}/orders/v/${row.id}`}
             initialPageSize={pageSize}
             onPageSizeChange={handlePageSizeChange}
           />

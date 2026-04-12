@@ -1,3 +1,4 @@
+import { isPast } from "date-fns";
 import { Header } from "@/components/header";
 import { ErrorPage } from "@/components/page-error";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,7 +80,8 @@ export function ProductPage() {
   const { upsertCartItem } = useCartStore((state) => state);
 
   // Derived values (only valid when product is loaded)
-  const isSoldOut = !!product?.soldOutAt;
+  const isSoldOut =
+    !!product?.soldOutAt && isPast(new Date(product.soldOutAt));
   const groups: any[] = product?.variationGroups ?? [];
   const allSelected = groups.every((g: any) => selectedByGroup[g.id]);
 

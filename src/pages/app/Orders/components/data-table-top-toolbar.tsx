@@ -43,7 +43,9 @@ export function DataTableToolbar<TData>({
   const [batchStatus, setBatchStatus] = useState<keyof typeof orderStatuses | "">("");
   const [loadingBatch, setLoadingBatch] = useState(false);
 
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered =
+    table.getState().columnFilters.length > 0 ||
+    !!table.getState().globalFilter;
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const hasSelection = selectedRows.length > 0;
 
@@ -100,13 +102,9 @@ export function DataTableToolbar<TData>({
         <div className="relative w-full">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Pesquisar por comprador"
-            value={
-              (table.getColumn("buyerName")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event) =>
-              table.getColumn("buyerName")?.setFilterValue(event.target.value)
-            }
+            placeholder="Pesquisar por comprador ou código"
+            value={(table.getState().globalFilter as string) ?? ""}
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
             className="w-full md:w-[250px] pl-8"
           />
         </div>
@@ -114,7 +112,10 @@ export function DataTableToolbar<TData>({
           {isFiltered && (
             <Button
               variant="ghost"
-              onClick={() => table.resetColumnFilters()}
+              onClick={() => {
+                table.resetColumnFilters();
+                table.setGlobalFilter("");
+              }}
               className="px-2 lg:px-3"
             >
               Limpar
