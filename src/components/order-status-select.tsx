@@ -31,7 +31,7 @@ const statusIcons = {
   CONFIRMED: { Icon: CheckCircle, className: "text-green-600" },
   IN_PRODUCTION: { Icon: ShoppingBag, className: "text-gray-600" },
   READY: { Icon: Package, className: "text-gray-600" },
-  DELIVERED: { Icon: Truck, className: "text-gray-600" },
+  DELIVERED: { Icon: Truck, className: "text-green-600" },
   CANCELED: { Icon: XCircle, className: "text-red-600" },
 } as const;
 

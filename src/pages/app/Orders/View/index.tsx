@@ -15,16 +15,32 @@ import { formatCPF, moneyFormatter } from "@/lib/utils";
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrderStatusHistory from "@/components/order-status-history";
 import { PaymentCard } from "@/components/payment-item";
 
 import { OrderStatusSelect } from "@/components/order-status-select";
+import { useEffect } from "react";
 
 export function ViewOrderPage() {
   const { orderId } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        navigate(-1);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [navigate]);
 
   const {
     data: order,
@@ -88,16 +104,25 @@ export function ViewOrderPage() {
                   alt={item.productName}
                   className="size-14 shrink-0 aspect-square rounded-md border bg-muted object-contain"
                 />
-                <span className="w-8 shrink-0 text-center">{item.quantity}x</span>
+                <span className="w-8 shrink-0 text-center">
+                  {item.quantity}x
+                </span>
                 <span className="flex-1 min-w-0 break-words">
                   {item.productName}
                   {item.selectedVariations?.length > 0 && (
                     <span className="text-muted-foreground/70">
                       {" — "}
-                      {item.selectedVariations.map((v: any) => v.variationName).join(" / ")}
+                      {item.selectedVariations
+                        .map((v: any) => v.variationName)
+                        .join(" / ")}
                     </span>
                   )}
-                  {item.note && <><br /><i>{item.note}</i></>}
+                  {item.note && (
+                    <>
+                      <br />
+                      <i>{item.note}</i>
+                    </>
+                  )}
                 </span>
                 <span className="shrink-0 text-right font-medium">
                   {moneyFormatter.format(+item.unitPrice)}
@@ -118,7 +143,9 @@ export function ViewOrderPage() {
 
             <div className="grid grid-cols-2 gap-2 ">
               <span className="text-muted-foreground">Nome</span>
-              <span className="text-right">{order.buyerName ?? order.user?.name}</span>
+              <span className="text-right">
+                {order.buyerName ?? order.user?.name}
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 items-center">
@@ -127,7 +154,7 @@ export function ViewOrderPage() {
                 <span>
                   {(order.buyerPhone ?? order.user?.phone)?.replace(
                     /^(\d{2})(\d{5})(\d{4})$/,
-                    "($1) $2-$3"
+                    "($1) $2-$3",
                   )}
                 </span>
                 <Button
