@@ -417,7 +417,7 @@ function SoldOutScheduler({ form }: { form: any }) {
               mode="single"
               selected={pickerDate}
               onSelect={setPickerDate}
-              autoFocus
+              initialFocus
             />
             <div className="border-t p-3 flex flex-col gap-3">
               <div className="flex items-center gap-2">
