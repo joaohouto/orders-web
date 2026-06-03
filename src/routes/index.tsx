@@ -33,6 +33,7 @@ import { AssociationsPage } from "@/pages/app/Associations";
 import { MembersPage } from "@/pages/app/Members";
 import { MembershipPixPage } from "@/pages/public/MembershipPix";
 import { UserMembershipsPage } from "@/pages/public/UserMemberships";
+import { AssociationDetailPage } from "@/pages/public/AssociationDetail";
 
 export function Routes() {
   return (
@@ -79,6 +80,7 @@ export function Routes() {
 
         <Route path="/:storeSlug" element={<StorePage />} />
         <Route path="/:storeSlug/p/:productSlug" element={<ProductPage />} />
+        <Route path="/:storeSlug/associacoes/:planId" element={<AssociationDetailPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </RouterRoutes>

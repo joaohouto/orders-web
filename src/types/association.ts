@@ -8,6 +8,14 @@ export type AssociationPlan = {
   isActive: boolean;
   activeMembers?: number;
   createdAt: string;
+  store?: {
+    id: string;
+    name: string;
+    slug: string;
+    icon?: string;
+    banner?: string;
+    instagram?: string;
+  };
 };
 
 export type MembershipStatus = "PENDING" | "ACTIVE" | "EXPIRED" | "CANCELED";

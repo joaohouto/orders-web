@@ -23,7 +23,7 @@ import {
   RefreshCw,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router";
 import { moneyFormatter } from "@/lib/utils";
 import {
@@ -31,7 +31,6 @@ import {
   Membership,
   MembershipStatus,
 } from "@/types/association";
-import { JoinAssociationDialog } from "./components/JoinAssociationDialog";
 import { useAuth } from "@/hooks/auth";
 import { useNavigate } from "react-router";
 
@@ -43,11 +42,11 @@ const DURATION_LABELS: Record<number, string> = {
 
 function PlanAction({
   membership,
-  onJoin,
+  onNavigate,
   onViewPix,
 }: {
   membership: Membership | undefined;
-  onJoin: () => void;
+  onNavigate: () => void;
   onViewPix: (id: string) => void;
 }) {
   const status = membership?.status as MembershipStatus | undefined;
@@ -66,7 +65,7 @@ function PlanAction({
       <Button
         size="sm"
         variant="outline"
-        onClick={() => onViewPix(membership!.id)}
+        onClick={(e) => { e.stopPropagation(); onViewPix(membership!.id); }}
       >
         <Clock className="size-4" />
         Ver PIX
@@ -76,7 +75,7 @@ function PlanAction({
 
   if (status === "EXPIRED") {
     return (
-      <Button size="sm" variant="outline" onClick={onJoin}>
+      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onNavigate(); }}>
         <RefreshCw className="size-4" />
         Renovar
       </Button>
@@ -84,7 +83,7 @@ function PlanAction({
   }
 
   return (
-    <Button size="sm" onClick={onJoin}>
+    <Button size="sm" onClick={(e) => { e.stopPropagation(); onNavigate(); }}>
       Tornar-se membro
     </Button>
   );
@@ -94,7 +93,6 @@ export function StorePage() {
   const { storeSlug } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [joiningPlan, setJoiningPlan] = useState<AssociationPlan | null>(null);
 
   const {
     data: store,
@@ -152,12 +150,8 @@ export function StorePage() {
 
   const hasPlans = associationPlans && associationPlans.length > 0;
 
-  function handleJoin(plan: AssociationPlan) {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    setJoiningPlan(plan);
+  function handleNavigateToPlan(plan: AssociationPlan) {
+    navigate(`/${storeSlug}/associacoes/${plan.id}`);
   }
 
   useEffect(() => {
@@ -244,7 +238,11 @@ export function StorePage() {
 
             <div className="grid gap-3 sm:grid-cols-2 mb-6">
               {associationPlans.map((plan) => (
-                <Card key={plan.id} className="border-2">
+                <Card
+                  key={plan.id}
+                  className="border-2 cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => handleNavigateToPlan(plan)}
+                >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-base">{plan.name}</CardTitle>
@@ -254,7 +252,7 @@ export function StorePage() {
                       </Badge>
                     </div>
                     {plan.description && (
-                      <CardDescription>{plan.description}</CardDescription>
+                      <CardDescription className="line-clamp-2">{plan.description}</CardDescription>
                     )}
                   </CardHeader>
                   <CardContent className="flex items-center justify-between gap-4">
@@ -263,7 +261,7 @@ export function StorePage() {
                     </p>
                     <PlanAction
                       membership={membershipByPlan[plan.id]}
-                      onJoin={() => handleJoin(plan)}
+                      onNavigate={() => handleNavigateToPlan(plan)}
                       onViewPix={(id) => navigate(`/associations/${id}/pix`)}
                     />
                   </CardContent>
@@ -304,13 +302,6 @@ export function StorePage() {
       </div>
 
       <SiteFooter />
-
-      <JoinAssociationDialog
-        plan={joiningPlan}
-        storeSlug={storeSlug!}
-        open={!!joiningPlan}
-        onOpenChange={(open) => !open && setJoiningPlan(null)}
-      />
     </div>
   );
 }
