@@ -1,8 +1,10 @@
 import {
+  BadgeCheck,
   CogIcon,
   NotebookText,
   Package,
   ShoppingCart,
+  UsersRound,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -49,6 +51,16 @@ export function NavMain() {
   ];
 
   const ownerOnlyItems = [
+    {
+      title: "Associações",
+      url: `/app/${storeSlug}/associations`,
+      icon: UsersRound,
+    },
+    {
+      title: "Membros",
+      url: `/app/${storeSlug}/members`,
+      icon: BadgeCheck,
+    },
     {
       title: "Colaboradores",
       url: `/app/${storeSlug}/team`,

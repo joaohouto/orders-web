@@ -10,6 +10,7 @@ import {
   Sun,
   User2Icon,
   UserCircleIcon,
+  BadgeCheck,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -71,6 +72,13 @@ export function NavUserButton() {
               <Link to="/orders">
                 <ShoppingBag />
                 Seus pedidos
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link to="/memberships">
+                <BadgeCheck />
+                Suas associações
               </Link>
             </DropdownMenuItem>
 

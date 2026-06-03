@@ -17,6 +17,7 @@ import api from "@/services/api";
 import { useCartStore } from "@/stores/cart-store";
 import { useQuery } from "@tanstack/react-query";
 import {
+  BadgeCheck,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -28,6 +29,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
+import { useAuth } from "@/hooks/auth";
+import { Membership } from "@/types/association";
 import ReactMarkdown from "react-markdown";
 import { SiteFooter } from "@/components/footer";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -76,12 +79,26 @@ export function ProductPage() {
     );
   };
 
+  const { user } = useAuth();
   const { upsertCartItem } = useCartStore((state) => state);
+
+  const { data: userMemberships } = useQuery<Membership[]>({
+    queryKey: ["my-memberships"],
+    queryFn: () => api.get("/me/memberships").then((r) => r.data),
+    enabled: !!user,
+  });
 
   // Derived values (only valid when product is loaded)
   const isSoldOut = !!product?.soldOutAt;
   const groups: any[] = product?.variationGroups ?? [];
   const allSelected = groups.every((g: any) => selectedByGroup[g.id]);
+
+  const isMember = !!(
+    product &&
+    userMemberships?.some(
+      (m) => m.storeId === product.storeId && m.status === "ACTIVE",
+    )
+  );
 
   const totalPriceAdjustment = groups.reduce((sum: number, g: any) => {
     const selectedId = selectedByGroup[g.id];
@@ -90,9 +107,13 @@ export function ProductPage() {
     return sum + Number(v?.priceAdjustment || 0);
   }, 0);
 
-  const displayPrice = product
-    ? Number(product.price) + totalPriceAdjustment
+  const hasMemberPrice = product?.memberPrice != null;
+  const basePrice = product
+    ? isMember && hasMemberPrice
+      ? Number(product.memberPrice)
+      : Number(product.price)
     : 0;
+  const displayPrice = basePrice + totalPriceAdjustment;
 
   const handleAddButton = () => {
     if (!allSelected) {
@@ -337,8 +358,34 @@ export function ProductPage() {
               {product.name}
             </h1>
 
-            <div className="text-2xl font-bold text-foreground opacity-50">
-              {moneyFormatter.format(displayPrice)}
+            <div className="flex flex-col gap-1">
+              {isMember && hasMemberPrice ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold">
+                      {moneyFormatter.format(displayPrice)}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">
+                      <BadgeCheck className="size-3.5" />
+                      Preço de associado
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground line-through">
+                    {moneyFormatter.format(Number(product.price) + totalPriceAdjustment)}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold opacity-50">
+                    {moneyFormatter.format(displayPrice)}
+                  </div>
+                  {hasMemberPrice && (
+                    <span className="text-sm text-muted-foreground">
+                      {moneyFormatter.format(Number(product.memberPrice) + totalPriceAdjustment)} para associados
+                    </span>
+                  )}
+                </>
+              )}
             </div>
 
             <p className="prose prose-neutral dark:prose-invert">

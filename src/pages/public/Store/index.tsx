@@ -4,14 +4,97 @@ import { ErrorPage } from "@/components/page-error";
 import { ProductItem } from "@/components/products/item";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import api from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
-import { InstagramIcon, PackageOpen } from "lucide-react";
-import { useEffect } from "react";
+import {
+  BadgeCheck,
+  CheckCircle2,
+  Clock,
+  InstagramIcon,
+  PackageOpen,
+  RefreshCw,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { moneyFormatter } from "@/lib/utils";
+import {
+  AssociationPlan,
+  Membership,
+  MembershipStatus,
+} from "@/types/association";
+import { JoinAssociationDialog } from "./components/JoinAssociationDialog";
+import { useAuth } from "@/hooks/auth";
+import { useNavigate } from "react-router";
+
+const DURATION_LABELS: Record<number, string> = {
+  1: "mensal",
+  6: "semestral",
+  12: "anual",
+};
+
+function PlanAction({
+  membership,
+  onJoin,
+  onViewPix,
+}: {
+  membership: Membership | undefined;
+  onJoin: () => void;
+  onViewPix: (id: string) => void;
+}) {
+  const status = membership?.status as MembershipStatus | undefined;
+
+  if (status === "ACTIVE") {
+    return (
+      <div className="flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
+        <CheckCircle2 className="size-4 shrink-0" />
+        Você é membro
+      </div>
+    );
+  }
+
+  if (status === "PENDING") {
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => onViewPix(membership!.id)}
+      >
+        <Clock className="size-4" />
+        Ver PIX
+      </Button>
+    );
+  }
+
+  if (status === "EXPIRED") {
+    return (
+      <Button size="sm" variant="outline" onClick={onJoin}>
+        <RefreshCw className="size-4" />
+        Renovar
+      </Button>
+    );
+  }
+
+  return (
+    <Button size="sm" onClick={onJoin}>
+      Tornar-se membro
+    </Button>
+  );
+}
 
 export function StorePage() {
   const { storeSlug } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [joiningPlan, setJoiningPlan] = useState<AssociationPlan | null>(null);
 
   const {
     data: store,
@@ -39,6 +122,42 @@ export function StorePage() {
   async function getStoreProducts() {
     const res = await api.get(`/stores/${storeSlug}/products`);
     return res.data;
+  }
+
+  const { data: associationPlans } = useQuery<AssociationPlan[]>({
+    queryKey: [`store-${storeSlug}-association-plans`],
+    queryFn: () =>
+      api.get(`/stores/${storeSlug}/association-plans`).then((r) => r.data),
+  });
+
+  const { data: userMemberships } = useQuery<Membership[]>({
+    queryKey: ["my-memberships"],
+    queryFn: () => api.get("/me/memberships").then((r) => r.data),
+    enabled: !!user,
+  });
+
+  const membershipByPlan = (userMemberships ?? []).reduce<
+    Record<string, Membership>
+  >((acc, m) => {
+    const existing = acc[m.planId];
+    if (
+      !existing ||
+      m.status === "ACTIVE" ||
+      (m.status === "PENDING" && existing.status !== "ACTIVE")
+    ) {
+      acc[m.planId] = m;
+    }
+    return acc;
+  }, {});
+
+  const hasPlans = associationPlans && associationPlans.length > 0;
+
+  function handleJoin(plan: AssociationPlan) {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setJoiningPlan(plan);
   }
 
   useEffect(() => {
@@ -115,6 +234,45 @@ export function StorePage() {
           </div>
         </section>
 
+        {hasPlans && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-sm uppercase font-medium text-muted-foreground">
+                Associações
+              </h2>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 mb-6">
+              {associationPlans.map((plan) => (
+                <Card key={plan.id} className="border-2">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-base">{plan.name}</CardTitle>
+                      <Badge variant="secondary" className="shrink-0 text-xs">
+                        {DURATION_LABELS[plan.durationMonths] ??
+                          `${plan.durationMonths} meses`}
+                      </Badge>
+                    </div>
+                    {plan.description && (
+                      <CardDescription>{plan.description}</CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between gap-4">
+                    <p className="text-xl font-bold">
+                      {moneyFormatter.format(plan.price)}
+                    </p>
+                    <PlanAction
+                      membership={membershipByPlan[plan.id]}
+                      onJoin={() => handleJoin(plan)}
+                      onViewPix={(id) => navigate(`/associations/${id}/pix`)}
+                    />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div>
           <h2 className="text-sm uppercase font-medium mb-4 text-muted-foreground">
             Produtos
@@ -146,6 +304,13 @@ export function StorePage() {
       </div>
 
       <SiteFooter />
+
+      <JoinAssociationDialog
+        plan={joiningPlan}
+        storeSlug={storeSlug!}
+        open={!!joiningPlan}
+        onOpenChange={(open) => !open && setJoiningPlan(null)}
+      />
     </div>
   );
 }

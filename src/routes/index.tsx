@@ -29,6 +29,10 @@ import { SearchOrderPage } from "@/pages/app/Orders/Search";
 import { ViewUserOrderPage } from "@/pages/public/UserOrders/View";
 import { TermosPage } from "@/pages/public/Legal/termos";
 import { PrivacidadePage } from "@/pages/public/Legal/privacidade";
+import { AssociationsPage } from "@/pages/app/Associations";
+import { MembersPage } from "@/pages/app/Members";
+import { MembershipPixPage } from "@/pages/public/MembershipPix";
+import { UserMembershipsPage } from "@/pages/public/UserMemberships";
 
 export function Routes() {
   return (
@@ -43,6 +47,8 @@ export function Routes() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders/:orderId" element={<ViewUserOrderPage />} />
           <Route path="/orders/:orderId/pix" element={<PixPaymentPage />} />
+          <Route path="/memberships" element={<UserMembershipsPage />} />
+          <Route path="/associations/:membershipId/pix" element={<MembershipPixPage />} />
 
           <Route path="/app" element={<AppPage />} />
 
@@ -58,6 +64,8 @@ export function Routes() {
 
             <Route path="team" element={<TeamPage />} />
             <Route path="config" element={<ConfigStorePage />} />
+            <Route path="associations" element={<AssociationsPage />} />
+            <Route path="members" element={<MembersPage />} />
 
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/new" element={<NewSalePage />} />

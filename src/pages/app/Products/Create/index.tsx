@@ -315,6 +315,7 @@ const formSchema = z.object({
   name: z.string({ message: "Forneça um valor" }),
   description: z.string({ message: "Forneça um valor" }).optional(),
   price: z.coerce.number({ message: "Informe um preço" }).positive({ message: "Preço deve ser positivo" }),
+  memberPrice: z.coerce.number().positive({ message: "Preço deve ser positivo" }).optional().nullable(),
   isActive: z.boolean().default(true),
   acceptOrderNote: z.boolean().default(false),
   images: z.array(z.string().url()),
@@ -485,12 +486,20 @@ export function CreateProductPage() {
               )}
             />
 
-            <MoneyInput
-              form={form}
-              label="Preço base"
-              name="price"
-              placeholder="R$"
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <MoneyInput
+                form={form}
+                label="Preço base"
+                name="price"
+                placeholder="R$"
+              />
+              <MoneyInput
+                form={form}
+                label="Preço para associados"
+                name="memberPrice"
+                placeholder="R$ (opcional)"
+              />
+            </div>
 
             <FormField
               control={form.control}

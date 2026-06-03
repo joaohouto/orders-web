@@ -16,6 +16,7 @@ export type Product = {
   slug: string;
   description?: string;
   price: number;
+  memberPrice?: number | null;
   images: string[];
   isActive: boolean;
   acceptOrderNote: boolean;
