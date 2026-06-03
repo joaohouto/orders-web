@@ -1,6 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
@@ -10,6 +11,7 @@ import dayjs from "dayjs";
 type Product = {
   id: string;
   name: string;
+  isActive: boolean;
   variationGroups: {
     name: string;
     variations: { name: string; priceAdjustment: number }[];
@@ -48,10 +50,18 @@ export const columns: ColumnDef<Product>[] = [
       <DataTableColumnHeader column={column} title="Nome" />
     ),
     cell: ({ row }) => {
+      const isActive = row.original.isActive;
       return (
-        <span className="max-w-[500px] truncate font-medium">
-          {row.getValue("name")}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="max-w-[500px] truncate font-medium">
+            {row.getValue("name")}
+          </span>
+          {!isActive && (
+            <Badge variant="secondary" className="shrink-0">
+              Inativo
+            </Badge>
+          )}
+        </div>
       );
     },
   },

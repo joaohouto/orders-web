@@ -1,52 +1,37 @@
 import { AppHeader } from "@/components/app-header";
 
 import api from "@/services/api";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router";
 
 import { LoadingPage } from "@/components/page-loading";
 import { ErrorPage } from "@/components/page-error";
 
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
+import { toast } from "sonner";
 
 export function ProductsPage() {
   const { storeSlug } = useParams();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "10");
-  const q = searchParams.get("q") || "";
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["products", { page, limit, q }],
-    queryFn: () => fetchProducts({ page, limit, q }),
+    queryKey: ["products", storeSlug],
+    queryFn: () =>
+      api
+        .get(`/stores/${storeSlug}/products`, { params: { includeInactive: "true" } })
+        .then((res) => res.data),
   });
 
-  const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: newPage.toString(), limit: limit.toString(), q });
-  };
-
-  async function fetchProducts({
-    page,
-    limit,
-    q,
-  }: {
-    page: number;
-    limit: number;
-    q?: string;
-  }) {
-    const response = await api.get(`/stores/${storeSlug}/products`, {
-      params: {
-        page: page.toString(),
-        limit: limit.toString(),
-        ...(q ? { q } : {}),
-      },
-    });
-
-    return response.data;
-  }
+  const reorderMutation = useMutation({
+    mutationFn: (productIds: string[]) =>
+      api.patch(`/stores/${storeSlug}/products/reorder`, { productIds }),
+    onError: () => {
+      toast.error("Erro ao salvar nova ordem");
+      queryClient.invalidateQueries({ queryKey: ["products", storeSlug] });
+    },
+  });
 
   if (isLoading) {
     return <LoadingPage />;
@@ -61,13 +46,16 @@ export function ProductsPage() {
       <AppHeader routes={[{ path: "products", title: "Produtos" }]} />
 
       <div className="flex flex-col">
-        <div className="flex flex-col gap-4 px-8 py-4 ">
+        <div className="flex flex-col gap-4 px-8 py-4">
           <DataTable
             data={data.data}
             columns={columns}
+            showPagination={false}
             onRowClick={(row: any) =>
               navigate(`/app/${storeSlug}/products/e/${row.slug}`)
             }
+            getRowId={(row: any) => row.id}
+            onReorder={(ids) => reorderMutation.mutate(ids)}
           />
         </div>
       </div>
