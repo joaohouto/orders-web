@@ -21,10 +21,14 @@ export function AuthPage() {
   const { saveToken, user } = useAuth();
 
   useEffect(() => {
-    const token = searchParams.get("token");
+    const code = searchParams.get("code");
 
-    if (token) {
-      saveToken({ token });
+    if (code) {
+      fetch(`${API_URL}/auth/exchange-code?code=${code}`)
+        .then((r) => r.json())
+        .then(({ token }) => {
+          if (token) saveToken({ token });
+        });
     }
   }, []);
 

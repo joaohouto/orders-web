@@ -49,6 +49,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
+import { toSlug } from "@/lib/utils";
 
 function SortableImageItem({
   fieldId,
@@ -444,7 +445,7 @@ export function CreateProductPage() {
   const watchedName = form.watch("name");
   useEffect(() => {
     if (watchedName) {
-      form.setValue("slug", watchedName.toLocaleLowerCase().replaceAll(" ", "-"));
+      form.setValue("slug", toSlug(watchedName));
     }
   }, [watchedName]);
 

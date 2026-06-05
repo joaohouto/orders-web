@@ -28,4 +28,17 @@ api.interceptors.request.use(async (req) => {
   return req;
 });
 
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 403) {
+      localStorage.removeItem("@Orders:Token");
+      localStorage.removeItem("@Orders:User");
+      toast.info("Sessão inválida! Entre novamente!");
+      window.location.href = "/auth";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

@@ -53,3 +53,13 @@ export function formatCPF(cpf: string | null | undefined) {
   if (!cpf) return;
   return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
 }
+
+export function toSlug(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/gi, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
