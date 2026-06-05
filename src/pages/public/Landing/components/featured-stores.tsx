@@ -5,6 +5,8 @@ import { AlertTriangle, Bird } from "lucide-react";
 import { info } from "@/config/app";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const FEATURED_STORES = ["direitoaquidauana", "furia"];
+
 export function FeaturedStores() {
   const {
     data: stores,
@@ -22,7 +24,6 @@ export function FeaturedStores() {
 
   return (
     <section className="w-full">
-      {/* Hero */}
       {/* Hero */}
       <div className="border-b bg-background">
         <div className="container mx-auto px-4 md:px-6 py-20 md:py-32 flex flex-col items-center justify-center text-center gap-6">
@@ -70,7 +71,7 @@ export function FeaturedStores() {
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             {stores
-              ?.filter((store: any) => store.slug === "direitoaquidauana")
+              ?.filter((store: any) => FEATURED_STORES.includes(store.slug))
               .map((store: any) => (
                 <StoreCard key={store.id} {...store} />
               ))}
@@ -84,7 +85,8 @@ export function FeaturedStores() {
             )}
             {isError && (
               <div className="flex items-center gap-2 text-muted-foreground font-medium">
-                <AlertTriangle className="size-4" /> Não foi possível carregar as lojas
+                <AlertTriangle className="size-4" /> Não foi possível carregar
+                as lojas
               </div>
             )}
           </div>

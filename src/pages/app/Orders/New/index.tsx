@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { BadgeCheck, Loader2, Plus, Search, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
@@ -39,13 +39,15 @@ import {
 import api from "@/services/api";
 import { moneyFormatter } from "@/lib/utils";
 import { Product } from "@/types/product";
+import { Switch } from "@/components/ui/switch";
 
 const buyerSchema = z.object({
   buyerName: z.string().min(1, "Obrigatório"),
   buyerPhone: z
     .string()
-    .min(14, "Número incompleto")
-    .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido"),
+    .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Telefone inválido")
+    .or(z.literal(""))
+    .optional(),
   buyerEmail: z.string().email("Email inválido").or(z.literal("")).optional(),
 });
 
@@ -54,12 +56,15 @@ type BuyerFormValues = z.infer<typeof buyerSchema>;
 type SelectedItem = {
   productId: string;
   variationIds: string[];
+  textInputs: Record<string, string>;
   quantity: number;
   note: string;
   productName: string;
   productImage: string;
   variationNames: string;
   unitPrice: number;
+  useMemberPrice: boolean;
+  memberPrice?: number | null;
 };
 
 export function NewSalePage() {
@@ -72,11 +77,11 @@ export function NewSalePage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedVariations, setSelectedVariations] = useState<
-    Record<string, string>
-  >({});
+  const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
+  const [textInputValues, setTextInputValues] = useState<Record<string, string>>({});
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemNote, setItemNote] = useState("");
+  const [useMemberPrice, setUseMemberPrice] = useState(false);
 
   const form = useForm<BuyerFormValues>({
     resolver: zodResolver(buyerSchema),
@@ -104,41 +109,57 @@ export function NewSalePage() {
     setSearch("");
     setSelectedProduct(null);
     setSelectedVariations({});
+    setTextInputValues({});
     setItemQuantity(1);
     setItemNote("");
+    setUseMemberPrice(false);
     setPickerOpen(true);
   }
 
   function selectProduct(product: Product) {
     setSelectedProduct(product);
     setSelectedVariations({});
+    setTextInputValues({});
     setItemQuantity(1);
     setItemNote("");
+    setUseMemberPrice(false);
   }
 
   function addItem() {
     if (!selectedProduct) return;
 
     for (const group of selectedProduct.variationGroups) {
-      if (!selectedVariations[group.id]) {
+      if (group.type !== "text" && !selectedVariations[group.id]) {
         toast.error(`Selecione uma opção para "${group.name}"`);
         return;
       }
     }
 
     const variationIds = Object.values(selectedVariations);
+    const trimmedTextInputs = Object.fromEntries(
+      Object.entries(textInputValues)
+        .map(([k, v]) => [k, v.trim()])
+        .filter(([, v]) => v !== "")
+    );
 
-    const variationNames = selectedProduct.variationGroups
-      .map((group) => {
-        const variation = group.variations.find(
-          (v) => v.id === selectedVariations[group.id]
-        );
-        return variation ? `${group.name}: ${variation.name}` : "";
-      })
-      .filter(Boolean)
-      .join(" / ");
+    const variationNames = [
+      ...selectedProduct.variationGroups
+        .filter((g) => g.type !== "text" && selectedVariations[g.id])
+        .map((group) => {
+          const variation = group.variations.find((v) => v.id === selectedVariations[group.id]);
+          return variation ? `${group.name}: ${variation.name}` : "";
+        })
+        .filter(Boolean),
+      ...selectedProduct.variationGroups
+        .filter((g) => g.type === "text" && trimmedTextInputs[g.id])
+        .map((g) => `${g.name}: ${trimmedTextInputs[g.id]}`),
+    ].join(" / ");
 
-    let unitPrice = Number(selectedProduct.price);
+    const basePrice = useMemberPrice && selectedProduct.memberPrice != null
+      ? Number(selectedProduct.memberPrice)
+      : Number(selectedProduct.price);
+
+    let unitPrice = basePrice;
     for (const vId of variationIds) {
       for (const group of selectedProduct.variationGroups) {
         const variation = group.variations.find((v) => v.id === vId);
@@ -151,12 +172,15 @@ export function NewSalePage() {
       {
         productId: selectedProduct.id,
         variationIds,
+        textInputs: trimmedTextInputs,
         quantity: itemQuantity,
         note: itemNote,
         productName: selectedProduct.name,
         productImage: selectedProduct.images[0] ?? "",
         variationNames,
         unitPrice,
+        useMemberPrice: useMemberPrice && selectedProduct.memberPrice != null,
+        memberPrice: selectedProduct.memberPrice,
       },
     ]);
 
@@ -177,13 +201,15 @@ export function NewSalePage() {
     try {
       const response = await api.post(`/stores/${storeSlug}/orders/guest`, {
         buyerName: values.buyerName,
-        buyerPhone: values.buyerPhone.replace(/\D/g, ""),
+        ...(values.buyerPhone ? { buyerPhone: values.buyerPhone.replace(/\D/g, "") } : {}),
         ...(values.buyerEmail ? { buyerEmail: values.buyerEmail } : {}),
         items: items.map((item) => ({
           productId: item.productId,
           variationIds: item.variationIds,
+          ...(Object.keys(item.textInputs ?? {}).length > 0 ? { textInputs: item.textInputs } : {}),
           quantity: item.quantity,
           ...(item.note ? { note: item.note } : {}),
+          ...(item.useMemberPrice ? { useMemberPrice: true } : {}),
         })),
       });
 
@@ -241,9 +267,12 @@ export function NewSalePage() {
                   name="buyerPhone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone</FormLabel>
+                      <FormLabel>
+                        Telefone{" "}
+                        <span className="text-muted-foreground font-normal">(opcional)</span>
+                      </FormLabel>
                       <FormControl>
-                        <PhoneInput {...field} />
+                        <PhoneInput {...field} value={field.value ?? ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -310,6 +339,12 @@ export function NewSalePage() {
                         {item.variationNames && (
                           <p className="text-muted-foreground text-xs">
                             {item.variationNames}
+                          </p>
+                        )}
+                        {item.useMemberPrice && (
+                          <p className="text-xs text-primary flex items-center gap-1 mt-0.5">
+                            <BadgeCheck className="size-3" />
+                            Preço de associado
                           </p>
                         )}
                         {item.note && (
@@ -410,40 +445,50 @@ export function NewSalePage() {
               {selectedProduct.variationGroups.map((group) => (
                 <div key={group.id} className="flex flex-col gap-2">
                   <Label className="font-semibold">{group.name}</Label>
-                  <RadioGroup
-                    value={selectedVariations[group.id] ?? ""}
-                    onValueChange={(value) =>
-                      setSelectedVariations((prev) => ({
-                        ...prev,
-                        [group.id]: value,
-                      }))
-                    }
-                    className="flex flex-col gap-1"
-                  >
-                    {group.variations.map((variation) => (
-                      <div
-                        key={variation.id}
-                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted cursor-pointer"
-                      >
-                        <RadioGroupItem
-                          value={variation.id}
-                          id={variation.id}
-                        />
-                        <Label
-                          htmlFor={variation.id}
-                          className="flex-1 cursor-pointer flex justify-between"
+                  {group.type === "text" ? (
+                    <Input
+                      value={textInputValues[group.id] ?? ""}
+                      onChange={(e) =>
+                        setTextInputValues((prev) => ({ ...prev, [group.id]: e.target.value }))
+                      }
+                      placeholder={`Digite ${group.name.toLowerCase()}...`}
+                    />
+                  ) : (
+                    <RadioGroup
+                      value={selectedVariations[group.id] ?? ""}
+                      onValueChange={(value) =>
+                        setSelectedVariations((prev) => ({
+                          ...prev,
+                          [group.id]: value,
+                        }))
+                      }
+                      className="flex flex-col gap-1"
+                    >
+                      {group.variations.map((variation) => (
+                        <div
+                          key={variation.id}
+                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted cursor-pointer"
                         >
-                          <span>{variation.name}</span>
-                          {Number(variation.priceAdjustment) !== 0 && (
-                            <span className="text-muted-foreground text-xs">
-                              {Number(variation.priceAdjustment) > 0 ? "+" : ""}
-                              {moneyFormatter.format(Number(variation.priceAdjustment))}
-                            </span>
-                          )}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+                          <RadioGroupItem
+                            value={variation.id}
+                            id={variation.id}
+                          />
+                          <Label
+                            htmlFor={variation.id}
+                            className="flex-1 cursor-pointer flex justify-between"
+                          >
+                            <span>{variation.name}</span>
+                            {Number(variation.priceAdjustment) !== 0 && (
+                              <span className="text-muted-foreground text-xs">
+                                {Number(variation.priceAdjustment) > 0 ? "+" : ""}
+                                {moneyFormatter.format(Number(variation.priceAdjustment))}
+                              </span>
+                            )}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  )}
                 </div>
               ))}
 
@@ -486,6 +531,25 @@ export function NewSalePage() {
                     value={itemNote}
                     onChange={(e) => setItemNote(e.target.value)}
                     placeholder="Ex: sem cebola..."
+                  />
+                </div>
+              )}
+
+              {selectedProduct.memberPrice != null && (
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex flex-col gap-0.5">
+                    <Label className="flex items-center gap-1.5 cursor-pointer">
+                      <BadgeCheck className="size-4 text-primary" />
+                      Preço de associado
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {moneyFormatter.format(Number(selectedProduct.memberPrice))} em vez de{" "}
+                      {moneyFormatter.format(Number(selectedProduct.price))}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={useMemberPrice}
+                    onCheckedChange={setUseMemberPrice}
                   />
                 </div>
               )}

@@ -1,4 +1,5 @@
 import { Header } from "@/components/header";
+import { MobileCartBar } from "@/components/cart/mobile-bar";
 import { ErrorPage } from "@/components/page-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -10,6 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { moneyFormatter } from "@/lib/utils";
@@ -34,18 +36,28 @@ import { Membership } from "@/types/association";
 import ReactMarkdown from "react-markdown";
 import { SiteFooter } from "@/components/footer";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 
 export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
-  const [selectedByGroup, setSelectedByGroup] = useState<
-    Record<string, string>
-  >({});
+  const [selectedByGroup, setSelectedByGroup] = useState<Record<string, string>>({});
+  const [textInputs, setTextInputs] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
   const [selectionError, setSelectionError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [pendingAdd, setPendingAdd] = useState<(() => void) | null>(null);
 
   const { storeSlug, productSlug } = useParams();
 
@@ -80,7 +92,7 @@ export function ProductPage() {
   };
 
   const { user } = useAuth();
-  const { upsertCartItem } = useCartStore((state) => state);
+  const { cart, clearCart, upsertCartItem } = useCartStore((state) => state);
 
   const { data: userMemberships } = useQuery<Membership[]>({
     queryKey: ["my-memberships"],
@@ -91,7 +103,9 @@ export function ProductPage() {
   // Derived values (only valid when product is loaded)
   const isSoldOut = !!product?.soldOutAt;
   const groups: any[] = product?.variationGroups ?? [];
-  const allSelected = groups.every((g: any) => selectedByGroup[g.id]);
+  const allSelected = groups.every((g: any) =>
+    g.type === "text" ? true : !!selectedByGroup[g.id]
+  );
 
   const isMember = !!(
     product &&
@@ -115,32 +129,42 @@ export function ProductPage() {
     : 0;
   const displayPrice = basePrice + totalPriceAdjustment;
 
-  const handleAddButton = () => {
-    if (!allSelected) {
-      setSelectionError(true);
-      setTimeout(() => setSelectionError(false), 2000);
-      return;
-    }
-
+  const doAddToCart = () => {
     const variationIds = Object.values(selectedByGroup);
-    const cartKey = `${product.id}:${[...variationIds].sort().join(",")}`;
-    const variationNames = groups
-      .filter((g: any) => selectedByGroup[g.id])
-      .map((g: any) => {
-        const v = g.variations.find((v: any) => v.id === selectedByGroup[g.id]);
-        return v.name;
-      })
-      .join(" / ");
+    const trimmedTextInputs = Object.fromEntries(
+      Object.entries(textInputs)
+        .map(([k, v]) => [k, v.trim()])
+        .filter(([, v]) => v !== "")
+    );
+    const textPart = Object.entries(trimmedTextInputs)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join("|");
+    const cartKey = `${product.id}:${[...variationIds].sort().join(",")}${textPart ? `:${textPart}` : ""}`;
+
+    const variationNames = [
+      ...groups
+        .filter((g: any) => g.type !== "text" && selectedByGroup[g.id])
+        .map((g: any) => {
+          const v = g.variations.find((v: any) => v.id === selectedByGroup[g.id]);
+          return v.name;
+        }),
+      ...groups
+        .filter((g: any) => g.type === "text" && trimmedTextInputs[g.id])
+        .map((g: any) => `${g.name}: ${trimmedTextInputs[g.id]}`),
+    ].join(" / ");
 
     upsertCartItem(
       {
         cartKey,
         storeId: product.storeId,
+        storeName: product.store?.name ?? storeSlug ?? "",
         productId: product.id,
         name: product.name,
         images: product.images,
         variationIds,
         variationNames,
+        textInputs: trimmedTextInputs,
         price: displayPrice,
         note,
       },
@@ -149,6 +173,22 @@ export function ProductPage() {
 
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 1500);
+  };
+
+  const handleAddButton = () => {
+    if (!allSelected) {
+      setSelectionError(true);
+      setTimeout(() => setSelectionError(false), 2000);
+      return;
+    }
+
+    const existingStoreId = cart[0]?.product.storeId;
+    if (existingStoreId && existingStoreId !== product.storeId) {
+      setPendingAdd(() => doAddToCart);
+      return;
+    }
+
+    doAddToCart();
   };
 
   if (isNotFound) {
@@ -170,6 +210,7 @@ export function ProductPage() {
           </Button>
         </div>
         <SiteFooter />
+        <MobileCartBar />
       </div>
     );
   }
@@ -376,7 +417,7 @@ export function ProductPage() {
                 </>
               ) : (
                 <>
-                  <div className="text-2xl font-bold opacity-50">
+                  <div className={`text-2xl font-bold${hasMemberPrice ? " opacity-50" : ""}`}>
                     {moneyFormatter.format(displayPrice)}
                   </div>
                   {hasMemberPrice && (
@@ -405,49 +446,67 @@ export function ProductPage() {
               {groups.map((group: any) => (
                 <div key={group.id}>
                   <h3
-                    className={`text-sm font-medium mb-2 ${selectionError && !selectedByGroup[group.id] ? "text-destructive" : ""}`}
+                    className={`text-sm font-medium mb-2 ${
+                      selectionError && group.type !== "text" && !selectedByGroup[group.id]
+                        ? "text-destructive"
+                        : ""
+                    }`}
                   >
                     {group.name}
                   </h3>
 
-                  <div className="flex flex-wrap gap-2">
-                    {group.variations.map((variation: any) => {
-                      const isSelected =
-                        selectedByGroup[group.id] === variation.id;
-                      return (
-                        <button
-                          key={variation.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedByGroup((prev) => ({
-                              ...prev,
-                              [group.id]: variation.id,
-                            }));
-                            setSelectionError(false);
-                          }}
-                          className={`px-3 py-1.5 min-w-10 rounded-md border text-sm font-medium transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : selectionError && !selectedByGroup[group.id]
-                                ? "border-destructive/60 hover:border-destructive"
-                                : "border-border hover:border-foreground/40"
-                          }`}
-                        >
-                          {variation.name}
-                          {Number(variation.priceAdjustment) !== 0 && (
-                            <span
-                              className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}
-                            >
-                              {Number(variation.priceAdjustment) > 0 ? "+" : ""}
-                              {moneyFormatter.format(
-                                Number(variation.priceAdjustment),
-                              )}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {group.type === "text" ? (
+                    <Input
+                      value={textInputs[group.id] ?? ""}
+                      onChange={(e) =>
+                        setTextInputs((prev) => ({ ...prev, [group.id]: e.target.value }))
+                      }
+                      placeholder={`Digite ${group.name.toLowerCase()}... (opcional)`}
+                    />
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {group.variations.map((variation: any) => {
+                        const isSelected = selectedByGroup[group.id] === variation.id;
+                        return (
+                          <button
+                            key={variation.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedByGroup((prev) => ({
+                                ...prev,
+                                [group.id]: variation.id,
+                              }));
+                              setSelectionError(false);
+                            }}
+                            className={`px-3 py-1.5 min-w-10 rounded-md border text-sm font-medium transition-all ${
+                              isSelected
+                                ? product.store?.accentColor
+                                  ? ""
+                                  : "border-primary bg-primary text-primary-foreground"
+                                : selectionError && !selectedByGroup[group.id]
+                                  ? "border-destructive/60 hover:border-destructive"
+                                  : "border-border hover:border-foreground/40"
+                            }`}
+                            style={isSelected && product.store?.accentColor ? {
+                              backgroundColor: product.store.accentColor,
+                              borderColor: product.store.accentColor,
+                              color: "white",
+                            } : undefined}
+                          >
+                            {variation.name}
+                            {Number(variation.priceAdjustment) !== 0 && (
+                              <span
+                                className={`ml-1.5 text-xs ${isSelected ? "opacity-80" : "text-muted-foreground"}`}
+                              >
+                                {Number(variation.priceAdjustment) > 0 ? "+" : ""}
+                                {moneyFormatter.format(Number(variation.priceAdjustment))}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -504,6 +563,10 @@ export function ProductPage() {
                   className="w-full transition-all"
                   size="lg"
                   disabled={addedToCart}
+                  style={product.store?.accentColor ? {
+                    backgroundColor: product.store.accentColor,
+                    borderColor: product.store.accentColor,
+                  } : undefined}
                 >
                   {addedToCart ? (
                     <>
@@ -524,6 +587,32 @@ export function ProductPage() {
       </div>
 
       <SiteFooter />
+      <MobileCartBar />
+
+      <AlertDialog open={!!pendingAdd} onOpenChange={(o) => !o && setPendingAdd(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Carrinho de outra loja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Seu carrinho tem itens de{" "}
+              <strong>{cart[0]?.product.storeName}</strong>. Para adicionar este
+              produto, o carrinho será esvaziado. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                clearCart();
+                pendingAdd?.();
+                setPendingAdd(null);
+              }}
+            >
+              Esvaziar e adicionar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

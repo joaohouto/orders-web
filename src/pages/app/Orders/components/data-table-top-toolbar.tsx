@@ -10,7 +10,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableViewOptions } from "./data-table-view-options";
+import { Label } from "@/components/ui/label";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import api from "@/services/api";
@@ -22,6 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 const orderStatuses = {
   PENDING: "Pendente",
@@ -40,6 +48,10 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const [loadingExport, setLoadingExport] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportAllPeriods, setExportAllPeriods] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState("");
+  const [exportEndDate, setExportEndDate] = useState("");
   const [batchStatus, setBatchStatus] = useState<keyof typeof orderStatuses | "">("");
   const [loadingBatch, setLoadingBatch] = useState(false);
 
@@ -52,19 +64,35 @@ export function DataTableToolbar<TData>({
   async function exportCSV() {
     setLoadingExport(true);
     try {
+      const params: Record<string, string> = {};
+      if (!exportAllPeriods) {
+        if (exportStartDate) params.startDate = exportStartDate;
+        if (exportEndDate) params.endDate = exportEndDate;
+      }
+
       const res = await api.get(`/stores/${storeSlug}/orders/export`, {
         responseType: "blob",
+        params,
       });
+
+      const parts = [
+        "pedidos",
+        storeSlug,
+        exportAllPeriods ? null : (exportStartDate || null),
+        exportAllPeriods ? null : (exportEndDate ? `a-${exportEndDate}` : null),
+      ].filter(Boolean);
+      const filename = `${parts.join("-")}.csv`;
 
       const url = URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `pedidos-${storeSlug}.csv`);
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       toast.success("Dados exportados!");
+      setExportDialogOpen(false);
     } catch (err) {
       console.log(err);
       toast.error("Erro ao exportar");
@@ -124,23 +152,74 @@ export function DataTableToolbar<TData>({
         </div>
 
         <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={exportCSV} disabled={loadingExport}>
-          {loadingExport ? (
-            <Loader2 className="animate-spin" />
-          ) : (
+          <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
             <DownloadIcon />
-          )}
-          Exportar .csv
-        </Button>
+            Exportar .csv
+          </Button>
 
-        <Button variant="outline" asChild>
-          <Link to={`/app/${storeSlug}/orders/find`}>
-            <CameraIcon />
-            Encontrar pedido
-          </Link>
-        </Button>
+          <Button variant="outline" asChild>
+            <Link to={`/app/${storeSlug}/orders/find`}>
+              <CameraIcon />
+              Encontrar pedido
+            </Link>
+          </Button>
         </div>
       </div>
+
+      <Dialog open={exportDialogOpen} onOpenChange={(open) => {
+        setExportDialogOpen(open);
+        if (!open) { setExportAllPeriods(false); setExportStartDate(""); setExportEndDate(""); }
+      }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Exportar pedidos</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-5 py-1">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Todos os períodos</p>
+                <p className="text-xs text-muted-foreground">
+                  Exporta todos os pedidos sem filtro de data
+                </p>
+              </div>
+              <Switch
+                checked={exportAllPeriods}
+                onCheckedChange={setExportAllPeriods}
+              />
+            </div>
+
+            <div className={`flex flex-col gap-4 transition-opacity duration-200 ${exportAllPeriods ? "opacity-40 pointer-events-none" : ""}`}>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm">De</Label>
+                <Input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  disabled={exportAllPeriods}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm">Até</Label>
+                <Input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  disabled={exportAllPeriods}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExportDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={exportCSV} disabled={loadingExport}>
+              {loadingExport ? <Loader2 className="animate-spin" /> : <DownloadIcon />}
+              Exportar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {hasSelection && (
         <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50 animate-in fade-in slide-in-from-top-1">

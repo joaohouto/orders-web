@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { AppHeader } from "@/components/app-header";
 import { useParams } from "react-router";
-import { Loader2, SaveIcon } from "lucide-react";
+import { Loader2, SaveIcon, Palette } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
@@ -41,6 +41,7 @@ const formSchema = z.object({
   pix: z.string().optional(),
   city: z.string().optional(),
   postalCode: z.string().optional(),
+  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
 });
 
 export function StorePage() {
@@ -62,6 +63,10 @@ export function StorePage() {
     return res.data;
   }
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
+
   useEffect(() => {
     if (store) {
       form.reset({
@@ -73,13 +78,10 @@ export function StorePage() {
         pix: store.pix,
         city: store.city,
         postalCode: store.postalCode,
+        accentColor: store.accentColor ?? null,
       });
     }
   }, [store]);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoadingAction(true);
@@ -189,11 +191,9 @@ export function StorePage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chave PIX</FormLabel>
-
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -205,11 +205,9 @@ export function StorePage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cidade</FormLabel>
-
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -221,11 +219,9 @@ export function StorePage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Código Postal</FormLabel>
-
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -283,6 +279,67 @@ export function StorePage() {
               onUpload={async (files: File[]) => {
                 const file = await handleImageUpload(files);
                 form.setValue("banner", file.url);
+              }}
+            />
+
+            <FormField
+              control={form.control}
+              name="accentColor"
+              render={({ field }) => {
+                const PRESETS = [
+                  "#991b1b", "#b45309", "#15803d", "#0369a1",
+                  "#6d28d9", "#be185d", "#0f172a", "#374151",
+                ];
+                const current = field.value ?? "#991b1b";
+                return (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Palette className="size-4" />
+                      Cor de destaque
+                    </FormLabel>
+                    <div className="flex flex-col gap-3">
+                      {/* Presets */}
+                      <div className="flex gap-2 flex-wrap">
+                        {PRESETS.map((hex) => (
+                          <button
+                            key={hex}
+                            type="button"
+                            onClick={() => field.onChange(hex)}
+                            className="size-7 rounded-full border-2 transition-transform hover:scale-110"
+                            style={{
+                              backgroundColor: hex,
+                              borderColor: current === hex ? "white" : "transparent",
+                              outline: current === hex ? `2px solid ${hex}` : "none",
+                              outlineOffset: "2px",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      {/* Free picker + preview */}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="size-9 rounded-lg border shrink-0"
+                          style={{ backgroundColor: current }}
+                        />
+                        <div className="relative">
+                          <Input
+                            type="color"
+                            value={current}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            className="w-10 h-9 p-1 cursor-pointer"
+                          />
+                        </div>
+                        <span className="text-sm font-mono text-muted-foreground">
+                          {current.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                    <FormDescription>
+                      Usada no botão de compra e na carteirinha de associado
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                );
               }}
             />
 

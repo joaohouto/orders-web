@@ -231,6 +231,8 @@ function SortableVariationGroupCard({
     }
   }
 
+  const currentType = form.watch(`variationGroups.${groupIndex}.type`) ?? "select";
+
   return (
     <Card ref={setNodeRef} style={style} className="border border-muted py-0">
       <CardHeader className="pt-4 pb-2 flex flex-row items-start gap-2">
@@ -249,12 +251,28 @@ function SortableVariationGroupCard({
             <FormItem className="flex-1">
               <FormLabel>Nome do grupo</FormLabel>
               <FormControl>
-                <Input placeholder="Ex.: Cor, Tamanho, Tecido" {...field} />
+                <Input placeholder="Ex.: Cor, Tamanho, Nome na camiseta" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        <div className="flex mt-6 rounded-md border overflow-hidden shrink-0">
+          <button
+            type="button"
+            onClick={() => form.setValue(`variationGroups.${groupIndex}.type` as any, "select")}
+            className={`px-2 py-1 text-xs font-medium transition-colors ${currentType === "select" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Opções
+          </button>
+          <button
+            type="button"
+            onClick={() => form.setValue(`variationGroups.${groupIndex}.type` as any, "text")}
+            className={`px-2 py-1 text-xs font-medium transition-colors ${currentType === "text" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Campo livre
+          </button>
+        </div>
         <Button
           type="button"
           variant="ghost"
@@ -267,43 +285,51 @@ function SortableVariationGroupCard({
       </CardHeader>
 
       <CardContent className="pb-4 space-y-3">
-        <DndContext
-          sensors={varSensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis]}
-          onDragEnd={handleVariationDragEnd}
-        >
-          <SortableContext
-            items={fields.map((f) => f.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {fields.map((varField, varIndex) => (
-              <SortableVariationRow
-                key={varField.id}
-                varField={varField}
-                varIndex={varIndex}
-                groupIndex={groupIndex}
-                form={form}
-                onRemove={() => remove(varIndex)}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => append({ name: "", priceAdjustment: 0 })}
-        >
-          <CirclePlus />
-          Adicionar variação
-        </Button>
-
-        {(form.formState.errors.variationGroups?.[groupIndex]?.variations as any)?.root && (
-          <p className="text-sm font-medium text-destructive">
-            {(form.formState.errors.variationGroups?.[groupIndex]?.variations as any).root.message}
+        {currentType === "text" ? (
+          <p className="text-xs text-muted-foreground">
+            O comprador poderá digitar um valor livremente ao adicionar ao carrinho.
           </p>
+        ) : (
+          <>
+            <DndContext
+              sensors={varSensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+              onDragEnd={handleVariationDragEnd}
+            >
+              <SortableContext
+                items={fields.map((f) => f.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {fields.map((varField, varIndex) => (
+                  <SortableVariationRow
+                    key={varField.id}
+                    varField={varField}
+                    varIndex={varIndex}
+                    groupIndex={groupIndex}
+                    form={form}
+                    onRemove={() => remove(varIndex)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ name: "", priceAdjustment: 0 })}
+            >
+              <CirclePlus />
+              Adicionar variação
+            </Button>
+
+            {form.formState.errors.variationGroups?.[groupIndex]?.variations?.message && (
+              <p className="text-sm font-medium text-destructive">
+                {form.formState.errors.variationGroups?.[groupIndex]?.variations?.message as string}
+              </p>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
@@ -323,14 +349,21 @@ const formSchema = z.object({
     .array(
       z.object({
         name: z.string({ message: "Informe o nome do grupo" }),
-        variations: z
-          .array(
-            z.object({
-              name: z.string({ message: "Informe este campo" }),
-              priceAdjustment: z.coerce.number().default(0),
-            })
-          )
-          .min(1, { message: "Adicione ao menos uma variação" }),
+        type: z.enum(["select", "text"]).default("select"),
+        variations: z.array(
+          z.object({
+            name: z.string({ message: "Informe este campo" }),
+            priceAdjustment: z.coerce.number().default(0),
+          })
+        ).default([]),
+      }).superRefine((data, ctx) => {
+        if (data.type !== "text" && data.variations.length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Adicione ao menos uma variação",
+            path: ["variations"],
+          });
+        }
       })
     )
     .min(1, { message: "Adicione ao menos um grupo de variações" }),
@@ -388,7 +421,14 @@ export function CreateProductPage() {
     setLoadingAction(true);
 
     try {
-      const response = await api.post(`/stores/${storeSlug}/products`, values);
+      const payload = {
+        ...values,
+        variationGroups: values.variationGroups.map((g) => ({
+          ...g,
+          variations: g.type === "text" ? [] : g.variations,
+        })),
+      };
+      const response = await api.post(`/stores/${storeSlug}/products`, payload);
 
       toast.success(`Produto criado! ID ${response.data.id}`);
 
@@ -401,14 +441,12 @@ export function CreateProductPage() {
     }
   }
 
+  const watchedName = form.watch("name");
   useEffect(() => {
-    if (form.watch("name")) {
-      form.setValue(
-        "slug",
-        form.watch("name")?.toLocaleLowerCase()?.replaceAll(" ", "-")
-      );
+    if (watchedName) {
+      form.setValue("slug", watchedName.toLocaleLowerCase().replaceAll(" ", "-"));
     }
-  }, [form.watch("name")]);
+  }, [watchedName]);
 
   const images = useFieldArray({
     control: form.control,
@@ -556,6 +594,7 @@ export function CreateProductPage() {
                   onClick={() =>
                     (variationGroups as any).append({
                       name: "",
+                      type: "select",
                       variations: [{ name: "", priceAdjustment: 0 }],
                     })
                   }

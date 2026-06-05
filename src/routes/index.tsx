@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router";
 
 import { PrivateRoute } from "./private-route";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 import { NotFoundPage } from "@/pages/not-found";
 import { LandingPage } from "@/pages/public/Landing";
@@ -38,6 +39,7 @@ import { AssociationDetailPage } from "@/pages/public/AssociationDetail";
 export function Routes() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <RouterRoutes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -49,6 +51,7 @@ export function Routes() {
           <Route path="/orders/:orderId" element={<ViewUserOrderPage />} />
           <Route path="/orders/:orderId/pix" element={<PixPaymentPage />} />
           <Route path="/memberships" element={<UserMembershipsPage />} />
+          <Route path="/memberships/plan/:planId" element={<AssociationDetailPage />} />
           <Route path="/associations/:membershipId/pix" element={<MembershipPixPage />} />
 
           <Route path="/app" element={<AppPage />} />
@@ -80,7 +83,6 @@ export function Routes() {
 
         <Route path="/:storeSlug" element={<StorePage />} />
         <Route path="/:storeSlug/p/:productSlug" element={<ProductPage />} />
-        <Route path="/:storeSlug/associacoes/:planId" element={<AssociationDetailPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </RouterRoutes>

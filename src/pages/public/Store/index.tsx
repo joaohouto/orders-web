@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -18,21 +19,22 @@ import {
   BadgeCheck,
   CheckCircle2,
   Clock,
-  InstagramIcon,
+  LucideInstagram,
   PackageOpen,
   RefreshCw,
   Users,
 } from "lucide-react";
-import { useEffect } from "react";
-import { useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router";
 import { moneyFormatter } from "@/lib/utils";
 import {
   AssociationPlan,
   Membership,
   MembershipStatus,
 } from "@/types/association";
+import { JoinAssociationDialog } from "./components/JoinAssociationDialog";
 import { useAuth } from "@/hooks/auth";
-import { useNavigate } from "react-router";
+import { MobileCartBar } from "@/components/cart/mobile-bar";
 
 const DURATION_LABELS: Record<number, string> = {
   1: "mensal",
@@ -42,21 +44,34 @@ const DURATION_LABELS: Record<number, string> = {
 
 function PlanAction({
   membership,
-  onNavigate,
+  planId,
+  accentColor,
+  onJoin,
   onViewPix,
+  onViewDetail,
 }: {
   membership: Membership | undefined;
-  onNavigate: () => void;
+  planId: string;
+  accentColor?: string | null;
+  onJoin: () => void;
   onViewPix: (id: string) => void;
+  onViewDetail: (planId: string) => void;
 }) {
   const status = membership?.status as MembershipStatus | undefined;
+  const accent = accentColor ?? undefined;
 
   if (status === "ACTIVE") {
     return (
-      <div className="flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
+      <Button
+        onClick={() => onViewDetail(planId)}
+        variant="outline"
+        size="sm"
+        className="w-full"
+        style={{ color: accent }}
+      >
         <CheckCircle2 className="size-4 shrink-0" />
         Você é membro
-      </div>
+      </Button>
     );
   }
 
@@ -65,17 +80,18 @@ function PlanAction({
       <Button
         size="sm"
         variant="outline"
-        onClick={(e) => { e.stopPropagation(); onViewPix(membership!.id); }}
+        className="w-full"
+        onClick={() => onViewPix(membership!.id)}
       >
         <Clock className="size-4" />
-        Ver PIX
+        Aguardando pagamento
       </Button>
     );
   }
 
   if (status === "EXPIRED") {
     return (
-      <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onNavigate(); }}>
+      <Button size="sm" variant="outline" className="w-full" onClick={onJoin}>
         <RefreshCw className="size-4" />
         Renovar
       </Button>
@@ -83,7 +99,14 @@ function PlanAction({
   }
 
   return (
-    <Button size="sm" onClick={(e) => { e.stopPropagation(); onNavigate(); }}>
+    <Button
+      size="sm"
+      className="w-full"
+      onClick={onJoin}
+      style={
+        accent ? { backgroundColor: accent, borderColor: accent } : undefined
+      }
+    >
       Tornar-se membro
     </Button>
   );
@@ -93,6 +116,7 @@ export function StorePage() {
   const { storeSlug } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [joiningPlan, setJoiningPlan] = useState<AssociationPlan | null>(null);
 
   const {
     data: store,
@@ -111,7 +135,6 @@ export function StorePage() {
   const {
     data: products,
     isLoading: loadingProducts,
-    isError: errorProducts,
   } = useQuery({
     queryKey: [`store-${storeSlug}-products`],
     queryFn: getStoreProducts,
@@ -150,8 +173,12 @@ export function StorePage() {
 
   const hasPlans = associationPlans && associationPlans.length > 0;
 
-  function handleNavigateToPlan(plan: AssociationPlan) {
-    navigate(`/${storeSlug}/associacoes/${plan.id}`);
+  function handleJoin(plan: AssociationPlan) {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setJoiningPlan(plan);
   }
 
   useEffect(() => {
@@ -203,7 +230,7 @@ export function StorePage() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-2xl font-semibold tracking-tight">
+                  <h1 className="text-2xl font-semibold tracking-tight text-balance">
                     {store.name}
                   </h1>
                   {store.instagram && (
@@ -217,7 +244,7 @@ export function StorePage() {
                         href={`https://instagram.com/${store.instagram}`}
                         target="_blank"
                       >
-                        <InstagramIcon />
+                        <LucideInstagram />
                         {store.instagram}
                       </a>
                     </Button>
@@ -237,36 +264,70 @@ export function StorePage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 mb-6">
-              {associationPlans.map((plan) => (
-                <Card
-                  key={plan.id}
-                  className="border-2 cursor-pointer hover:border-primary/50 transition-colors"
-                  onClick={() => handleNavigateToPlan(plan)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-base">{plan.name}</CardTitle>
-                      <Badge variant="secondary" className="shrink-0 text-xs">
-                        {DURATION_LABELS[plan.durationMonths] ??
-                          `${plan.durationMonths} meses`}
-                      </Badge>
-                    </div>
-                    {plan.description && (
-                      <CardDescription className="line-clamp-2">{plan.description}</CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="flex items-center justify-between gap-4">
-                    <p className="text-xl font-bold">
-                      {moneyFormatter.format(plan.price)}
-                    </p>
-                    <PlanAction
-                      membership={membershipByPlan[plan.id]}
-                      onNavigate={() => handleNavigateToPlan(plan)}
-                      onViewPix={(id) => navigate(`/associations/${id}/pix`)}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
+              {associationPlans.map((plan) => {
+                const accent = store?.accentColor;
+                const membership = membershipByPlan[plan.id];
+                const isActive = membership?.status === "ACTIVE";
+                return (
+                  <Card
+                    key={plan.id}
+                    className="py-0 overflow-hidden"
+                    style={
+                      accent
+                        ? { borderTopColor: accent, borderTopWidth: 3 }
+                        : undefined
+                    }
+                  >
+                    <CardHeader className="pt-4 pb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="text-base leading-tight">
+                          {plan.name}
+                        </CardTitle>
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 text-xs mt-0.5"
+                        >
+                          {DURATION_LABELS[plan.durationMonths] ??
+                            `${plan.durationMonths} meses`}
+                        </Badge>
+                      </div>
+                      {plan.description && (
+                        <CardDescription className="line-clamp-2 text-xs">
+                          {plan.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+
+                    <CardContent className="">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold">
+                          {moneyFormatter.format(plan.price)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          /{" "}
+                          {DURATION_LABELS[plan.durationMonths] ??
+                            `${plan.durationMonths} meses`}
+                        </span>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter
+                      className={`border-t !py-4 ${isActive ? "" : "w-full"}`}
+                    >
+                      <PlanAction
+                        membership={membership}
+                        planId={plan.id}
+                        accentColor={accent}
+                        onJoin={() => handleJoin(plan)}
+                        onViewPix={(id) => navigate(`/associations/${id}/pix`)}
+                        onViewDetail={(id) =>
+                          navigate(`/memberships/plan/${id}`)
+                        }
+                      />
+                    </CardFooter>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
@@ -302,6 +363,14 @@ export function StorePage() {
       </div>
 
       <SiteFooter />
+      <MobileCartBar />
+
+      <JoinAssociationDialog
+        plan={joiningPlan}
+        storeSlug={storeSlug!}
+        open={!!joiningPlan}
+        onOpenChange={(open) => !open && setJoiningPlan(null)}
+      />
     </div>
   );
 }

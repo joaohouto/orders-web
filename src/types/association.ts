@@ -15,6 +15,7 @@ export type AssociationPlan = {
     icon?: string;
     banner?: string;
     instagram?: string;
+    accentColor?: string | null;
   };
 };
 

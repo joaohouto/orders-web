@@ -104,9 +104,11 @@ export function CheckoutPage() {
       updateUser(response.data);
 
       const items = cart.map((cartItem: Cart) => {
+        const textInputs = cartItem.product.textInputs ?? {};
         return {
           productId: cartItem.product.productId,
           variationIds: cartItem.product.variationIds,
+          ...(Object.keys(textInputs).length > 0 ? { textInputs } : {}),
           quantity: cartItem.quantity,
           note: cartItem.product.note,
         };

@@ -42,10 +42,16 @@ export function UserOrdersPage() {
   return (
     <>
       <Header />
-      <div className="w-full md:max-w-[600px] mx-auto py-8 px-4 flex flex-col gap-8">
-        <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft />
-        </Button>
+      <div className="w-full md:max-w-[600px] mx-auto pt-6 pb-20 px-4 flex flex-col gap-6">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" className="shrink-0" onClick={() => navigate(-1)}>
+            <ArrowLeft />
+          </Button>
+          <div>
+            <h1 className="text-xl font-semibold leading-tight">Meus pedidos</h1>
+            <p className="text-sm text-muted-foreground">Histórico de compras e pedidos realizados</p>
+          </div>
+        </div>
 
         {isLoading && (
           <>
